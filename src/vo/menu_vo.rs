@@ -1,11 +1,13 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct MenuListReq {
     pub menu_name: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
+#[serde(crate = "rocket::serde")]
 pub struct MenuListResp {
     pub msg: String,
     pub code: i32,
@@ -30,7 +32,8 @@ pub struct MenuListData {
     pub update_time: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct MenuSaveReq {
     pub sort: i32,
     pub status_id: i32,
@@ -44,7 +47,8 @@ pub struct MenuSaveReq {
     pub menu_type: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct MenuUpdateReq {
     pub id: i32,
     pub sort: i32,
@@ -59,7 +63,8 @@ pub struct MenuUpdateReq {
     pub menu_type: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct MenuDeleteReq {
     pub ids: Vec<i32>,
 }

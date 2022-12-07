@@ -69,9 +69,9 @@ impl JWTToken {
             Ok(c) => Ok(c.claims),
 
             Err(err) => match *err.kind() {
-                ErrorKind::InvalidToken => return Err(JwtTokenError("InvalidToken".to_string())), // Example on how to handle a specific error
-                ErrorKind::InvalidIssuer => return Err(JwtTokenError("InvalidIssuer".to_string())), // Example on how to handle a specific error
-                ErrorKind::ExpiredSignature => return Err(JwtTokenError("token 已经超时了".to_string())), // Example on how to handle a specific error
+                ErrorKind::InvalidToken => return Err(JwtTokenError("InvalidToken".to_string())),
+                ErrorKind::InvalidIssuer => return Err(JwtTokenError("InvalidIssuer".to_string())),
+                ErrorKind::ExpiredSignature => return Err(JwtTokenError("token 已经超时了".to_string())),
                 // _ => return Err(Error::from("InvalidToken other errors")),
                 _ => Err(JwtTokenError("create token error".to_string())),
             },

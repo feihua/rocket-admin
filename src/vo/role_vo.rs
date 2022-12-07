@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct RoleListReq {
     pub page_no: u64,
     pub page_size: u64,
@@ -8,7 +9,8 @@ pub struct RoleListReq {
     pub status_id: Option<i32>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
+#[serde(crate = "rocket::serde")]
 pub struct RoleListResp {
     pub msg: String,
     pub code: i32,
@@ -30,14 +32,16 @@ pub struct RoleListData {
     pub update_time: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct RoleSaveReq {
     pub role_name: String,
     pub sort: i32,
     pub remark: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct RoleUpdateReq {
     pub id: i32,
     pub sort: i32,
@@ -47,18 +51,21 @@ pub struct RoleUpdateReq {
 }
 
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct RoleDeleteReq {
     pub ids: Vec<i32>,
 }
 
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct QueryRoleMenuReq {
     pub role_id: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
+#[serde(crate = "rocket::serde")]
 pub struct QueryRoleMenuResp {
     pub msg: String,
     pub code: i32,
@@ -79,7 +86,8 @@ pub struct MenuDataList {
     pub key: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct UpdateRoleMenuReq {
     pub menu_ids: Vec<i32>,
     pub role_id: i32,

@@ -1,19 +1,18 @@
-use actix_web::{post, Responder, Result, web};
+use rocket::serde::json::{Json, Value};
+use rocket::serde::json::serde_json::json;
 use rbatis::rbdc::datetime::FastDateTime;
 use rbatis::sql::{PageRequest};
-use redis::Commands;
-use crate::AppState;
 use crate::model::entity::{SysMenu, SysUser};
 use crate::utils::error::WhoUnfollowedError;
-use crate::vo::user_vo::*;
 use crate::utils::jwt_util::JWTToken;
-use crate::utils::redis_util::init_redis;
+use crate::vo::user_vo::*;
 use crate::vo::{BaseResponse, handle_result};
+use crate::RB;
 
-#[post("/login")]
-pub async fn login(item: web::Json<UserLoginReq>, data: web::Data<AppState>) -> Result<impl Responder> {
-    log::info!("user login params: {:?}, {:?}", &item, data.batis);
-    let mut rb = &data.batis;
+#[post("/login", data = "<item>")]
+pub async fn login(item: Json<UserLoginReq>) -> Value {
+    log::info!("user login params: {:?}", &item);
+    let mut rb=RB.to_owned();
 
     let user_result = SysUser::select_by_column(&mut rb, "mobile", &item.mobile).await;
     log::info!("select_by_column: {:?}",user_result);
@@ -21,12 +20,7 @@ pub async fn login(item: web::Json<UserLoginReq>, data: web::Data<AppState>) -> 
     match user_result {
         Ok(d) => {
             if d.len() == 0 {
-                let resp = BaseResponse {
-                    msg: "用户不存在".to_string(),
-                    code: 1,
-                    data: None,
-                };
-                return Ok(web::Json(resp));
+                return json!({"code":1,"msg":"用户不存在".to_string()});
             }
 
             let user = d.get(0).unwrap().clone();
@@ -35,12 +29,7 @@ pub async fn login(item: web::Json<UserLoginReq>, data: web::Data<AppState>) -> 
             let password = user.password.unwrap();
 
             if password.ne(&item.password) {
-                let resp = BaseResponse {
-                    msg: "密码不正确".to_string(),
-                    code: 1,
-                    data: None,
-                };
-                return Ok(web::Json(resp));
+                return json!({"code":1,"msg":"密码不正确".to_string()});
             }
 
             let data = SysMenu::select_page(&mut rb, &PageRequest::new(1, 1000)).await;
@@ -62,41 +51,31 @@ pub async fn login(item: web::Json<UserLoginReq>, data: web::Data<AppState>) -> 
                         }),
                     };
 
-                    Ok(web::Json(resp))
+                    json!(&resp)
                 }
                 Err(err) => {
                     let er = match err {
                         WhoUnfollowedError::JwtTokenError(s) => { s }
                         _ => "no math error".to_string()
                     };
-                    let resp = BaseResponse {
-                        msg: er,
-                        code: 1,
-                        data: None,
-                    };
 
-                    Ok(web::Json(resp))
+                    json!({"code":1,"msg":er})
                 }
             }
         }
 
         Err(err) => {
             log::info!("select_by_column: {:?}",err);
-            let resp = BaseResponse {
-                msg: "查询用户异常".to_string(),
-                code: 1,
-                data: None,
-            };
-            return Ok(web::Json(resp));
+            return json!({"code":1,"msg":"查询用户异常".to_string()});
         }
     }
 }
 
 
-#[post("/query_user_menu")]
-pub async fn query_user_menu(item: web::Json<QueryUserMenuReq>, data: web::Data<AppState>) -> Result<impl Responder> {
+#[post("/query_user_menu", data = "<item>")]
+pub async fn query_user_menu(item: Json<QueryUserMenuReq>) -> Value {
     log::info!("query_user_menu params: {:?}", &item);
-    let mut rb = &data.batis;
+    let mut rb = RB.to_owned();
 
     let sys_user = SysUser::select_by_column(&mut rb, "id", "1").await;
 
@@ -123,9 +102,6 @@ pub async fn query_user_menu(item: web::Json<QueryUserMenuReq>, data: web::Data<
         btn_menu_str.push_str(&",")
     }
 
-    let mut redis_con = init_redis().await;
-    let _: () = redis_con.set("btn_menu_str", btn_menu_str).expect("sdfs");
-
     let resp = BaseResponse {
         msg: "successful".to_string(),
         code: 0,
@@ -136,14 +112,15 @@ pub async fn query_user_menu(item: web::Json<QueryUserMenuReq>, data: web::Data<
             name: sys_user.unwrap_or_default().get(0).unwrap().real_name.as_ref().expect("用户名不存在").to_string(),
         }),
     };
-    Ok(web::Json(resp))
+
+    json!(&resp)
 }
 
 
-#[post("/user_list")]
-pub async fn user_list(item: web::Json<UserListReq>, data: web::Data<AppState>) -> Result<impl Responder> {
+#[post("/user_list", data = "<item>")]
+pub async fn user_list(item: Json<UserListReq>) -> Value {
     log::info!("query user_list params: {:?}", &item);
-    let mut rb = &data.batis;
+    let mut rb = RB.to_owned();
 
     let result = SysUser::select_page(&mut rb, &PageRequest::new(item.page_no, item.page_size)).await;
 
@@ -191,17 +168,17 @@ pub async fn user_list(item: web::Json<UserListReq>, data: web::Data<AppState>) 
         }
     };
 
-    Ok(web::Json(resp))
+    json!(&resp)
 }
 
 
-#[post("/user_save")]
-pub async fn user_save(item: web::Json<UserSaveReq>, data: web::Data<AppState>) -> Result<impl Responder> {
+#[post("/user_save", data = "<item>")]
+pub async fn user_save(item: Json<UserSaveReq>) -> Value {
     log::info!("user_save params: {:?}", &item);
 
     let user = item.0;
 
-    let mut rb = &data.batis;
+    let mut rb = RB.to_owned();
     let sys_user = SysUser {
         id: None,
         gmt_create: Some(FastDateTime::now()),
@@ -217,17 +194,17 @@ pub async fn user_save(item: web::Json<UserSaveReq>, data: web::Data<AppState>) 
 
     let result = SysUser::insert(&mut rb, &sys_user).await;
 
-    Ok(web::Json(handle_result(result)))
+    json!(&handle_result(result))
 }
 
 
-#[post("/user_update")]
-pub async fn user_update(item: web::Json<UserUpdateReq>, data: web::Data<AppState>) -> Result<impl Responder> {
+#[post("/user_update", data = "<item>")]
+pub async fn user_update(item: Json<UserUpdateReq>) -> Value {
     log::info!("user_update params: {:?}", &item);
 
     let user = item.0;
 
-    let mut rb = &data.batis;
+    let mut rb = RB.to_owned();
     let sys_user = SysUser {
         id: Some(user.id),
         gmt_create: None,
@@ -243,17 +220,17 @@ pub async fn user_update(item: web::Json<UserUpdateReq>, data: web::Data<AppStat
 
     let result = SysUser::update_by_column(&mut rb, &sys_user, "id").await;
 
-    Ok(web::Json(handle_result(result)))
+    json!(&handle_result(result))
 }
 
 
-#[post("/user_delete")]
-pub async fn user_delete(item: web::Json<UserDeleteReq>, data: web::Data<AppState>) -> Result<impl Responder> {
+#[post("/user_delete", data = "<item>")]
+pub async fn user_delete(item: Json<UserDeleteReq>) -> Value {
     log::info!("user_delete params: {:?}", &item);
-    let mut rb = &data.batis;
+    let mut rb = RB.to_owned();
 
     let result = SysUser::delete_in_column(&mut rb, "id", &item.ids).await;
 
-    Ok(web::Json(handle_result(result)))
+    json!(&handle_result(result))
 }
 

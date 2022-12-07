@@ -1,16 +1,17 @@
-use actix_web::{post, Responder, Result, web};
+use rocket::serde::json::serde_json::json;
+use rocket::serde::json::{Json, Value};
 use rbatis::rbdc::datetime::FastDateTime;
 use rbatis::sql::{PageRequest};
-use crate::AppState;
 use crate::model::entity::{SysRole, query_menu_by_role, SysMenu, SysMenuRole};
+use crate::RB;
 use crate::vo::handle_result;
 use crate::vo::role_vo::*;
 
 
-#[post("/role_list")]
-pub async fn role_list(item: web::Json<RoleListReq>, data: web::Data<AppState>) -> Result<impl Responder> {
+#[post("/role_list", data = "<item>")]
+pub async fn role_list(item: Json<RoleListReq>) -> Value {
     log::info!("role_list params: {:?}", &item);
-    let mut rb = &data.batis;
+    let mut rb = RB.to_owned();
 
     let result = SysRole::select_page(&mut rb, &PageRequest::new(item.page_no, item.page_size)).await;
 
@@ -57,14 +58,14 @@ pub async fn role_list(item: web::Json<RoleListReq>, data: web::Data<AppState>) 
         }
     };
 
-    Ok(web::Json(resp))
+    json!(&resp)
 }
 
 
-#[post("/role_save")]
-pub async fn role_save(item: web::Json<RoleSaveReq>, data: web::Data<AppState>) -> Result<impl Responder> {
+#[post("/role_save", data = "<item>")]
+pub async fn role_save(item: Json<RoleSaveReq>) -> Value {
     println!("model: {:?}", &item);
-    let mut rb = &data.batis;
+    let mut rb = RB.to_owned();
 
     let role = item.0;
 
@@ -80,14 +81,14 @@ pub async fn role_save(item: web::Json<RoleSaveReq>, data: web::Data<AppState>) 
 
     let result = SysRole::insert(&mut rb, &sys_role).await;
 
-    Ok(web::Json(handle_result(result)))
+    json!(&handle_result(result))
 }
 
 
-#[post("/role_update")]
-pub async fn role_update(item: web::Json<RoleUpdateReq>, data: web::Data<AppState>) -> Result<impl Responder> {
+#[post("/role_update", data = "<item>")]
+pub async fn role_update(item: Json<RoleUpdateReq>) -> Value {
     println!("item: {:?}", &item);
-    let mut rb = &data.batis;
+    let mut rb = RB.to_owned();
     let role = item.0;
 
     let sys_role = SysRole {
@@ -102,25 +103,25 @@ pub async fn role_update(item: web::Json<RoleUpdateReq>, data: web::Data<AppStat
 
     let result = SysRole::update_by_column(&mut rb, &sys_role, "id").await;
 
-    Ok(web::Json(handle_result(result)))
+    json!(&handle_result(result))
 }
 
 
-#[post("/role_delete")]
-pub async fn role_delete(item: web::Json<RoleDeleteReq>, data: web::Data<AppState>) -> Result<impl Responder> {
+#[post("/role_delete", data = "<item>")]
+pub async fn role_delete(item: Json<RoleDeleteReq>) -> Value {
     println!("item: {:?}", &item);
-    let mut rb = &data.batis;
+    let mut rb = RB.to_owned();
 
     let result = SysRole::delete_in_column(&mut rb, "id", &item.ids).await;
 
-    Ok(web::Json(handle_result(result)))
+    json!(&handle_result(result))
 }
 
 
-#[post("/query_role_menu")]
-pub async fn query_role_menu(item: web::Json<QueryRoleMenuReq>, data: web::Data<AppState>) -> Result<impl Responder> {
+#[post("/query_role_menu", data = "<item>")]
+pub async fn query_role_menu(item: Json<QueryRoleMenuReq>) -> Value {
     log::info!("query_role_menu params: {:?}", &item);
-    let mut rb = &data.batis;
+    let mut rb = RB.to_owned();
 
     let role_menu_list = query_menu_by_role(&mut rb, item.role_id).await;
 
@@ -147,16 +148,16 @@ pub async fn query_role_menu(item: web::Json<QueryRoleMenuReq>, data: web::Data<
         },
     };
 
-    Ok(web::Json(resp))
+    json!(&resp)
 }
 
 
-#[post("/update_role_menu")]
-pub async fn update_role_menu(item: web::Json<UpdateRoleMenuReq>, data: web::Data<AppState>) -> Result<impl Responder> {
+#[post("/update_role_menu", data = "<item>")]
+pub async fn update_role_menu(item: Json<UpdateRoleMenuReq>) -> Value {
     log::info!("update_role_menu params: {:?}", &item);
     let role_id = item.role_id;
 
-    let mut rb = &data.batis;
+    let mut rb = RB.to_owned();
 
     SysMenuRole::delete_by_column(&mut rb, "role_id", &role_id).await.expect("删除角色菜单异常");
 
@@ -176,5 +177,5 @@ pub async fn update_role_menu(item: web::Json<UpdateRoleMenuReq>, data: web::Dat
 
     let result = SysMenuRole::insert_batch(&mut rb, &menu_role, item.menu_ids.len() as u64).await;
 
-    Ok(web::Json(handle_result(result)))
+    json!(&handle_result(result))
 }

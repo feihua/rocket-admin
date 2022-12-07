@@ -1,13 +1,15 @@
 use serde::{Deserialize, Serialize};
-use validator::{Validate};
+// use validator::{Validate};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct UserLoginReq {
     pub mobile: String,
     pub password: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
+#[serde(crate = "rocket::serde")]
 pub struct UserLoginResp {
     pub msg: String,
     pub code: i32,
@@ -21,12 +23,14 @@ pub struct UserLoginData {
     pub token: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct QueryUserMenuReq {
     pub token: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
+#[serde(crate = "rocket::serde")]
 pub struct QueryUserMenuResp {
     pub msg: String,
     pub code: i32,
@@ -54,7 +58,8 @@ pub struct MenuUserList {
 }
 
 
-#[derive(Debug, Validate, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct UserListReq {
     pub page_no: u64,
     pub page_size: u64,
@@ -62,7 +67,8 @@ pub struct UserListReq {
     pub status_id: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
+#[serde(crate = "rocket::serde")]
 pub struct UserListResp {
     pub msg: String,
     pub code: i32,
@@ -85,14 +91,16 @@ pub struct UserListData {
     pub update_time: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct UserSaveReq {
     pub mobile: String,
     pub real_name: String,
     pub remark: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct UserUpdateReq {
     pub id: i32,
     pub sort: i32,
@@ -102,7 +110,8 @@ pub struct UserUpdateReq {
     pub remark: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct UserDeleteReq {
     pub ids: Vec<i32>,
 }

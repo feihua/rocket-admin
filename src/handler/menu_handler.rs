@@ -1,17 +1,18 @@
-use actix_web::{post, Responder, Result, web};
+use rocket::serde::json::serde_json::json;
+use rocket::serde::json::{Json, Value};
 use rbatis::rbdc::datetime::FastDateTime;
 use rbatis::sql::{PageRequest};
-use crate::AppState;
 
 use crate::model::entity::{SysMenu};
+use crate::RB;
 use crate::vo::handle_result;
 use crate::vo::menu_vo::{*};
 
 
-#[post("/menu_list")]
-pub async fn menu_list(item: web::Json<MenuListReq>, data: web::Data<AppState>) -> Result<impl Responder> {
+#[post("/menu_list", data = "<item>")]
+pub async fn menu_list(item: Json<MenuListReq>) -> Value {
     log::info!("menu_list params: {:?}", &item);
-    let mut rb = &data.batis;
+    let mut rb = RB.to_owned();
 
     let result = SysMenu::select_page(&mut rb, &PageRequest::new(1, 1000)).await;
 
@@ -55,14 +56,13 @@ pub async fn menu_list(item: web::Json<MenuListReq>, data: web::Data<AppState>) 
         }
     };
 
-
-    Ok(web::Json(resp))
+    json!(&resp)
 }
 
-#[post("/menu_save")]
-pub async fn menu_save(item: web::Json<MenuSaveReq>, data: web::Data<AppState>) -> Result<impl Responder> {
+#[post("/menu_save", data = "<item>")]
+pub async fn menu_save(item: Json<MenuSaveReq>) -> Value {
     log::info!("menu_save params: {:?}", &item);
-    let mut rb = &data.batis;
+    let mut rb = RB.to_owned();
 
     let menu = item.0;
 
@@ -83,13 +83,13 @@ pub async fn menu_save(item: web::Json<MenuSaveReq>, data: web::Data<AppState>) 
 
     let result = SysMenu::insert(&mut rb, &role).await;
 
-    Ok(web::Json(handle_result(result)))
+    json!(&handle_result(result))
 }
 
-#[post("/menu_update")]
-pub async fn menu_update(item: web::Json<MenuUpdateReq>, data: web::Data<AppState>) -> Result<impl Responder> {
+#[post("/menu_update", data = "<item>")]
+pub async fn menu_update(item: Json<MenuUpdateReq>) -> Value {
     log::info!("menu_update params: {:?}", &item);
-    let mut rb = &data.batis;
+    let mut rb = RB.to_owned();
     let menu = item.0;
 
     let sys_menu = SysMenu {
@@ -109,16 +109,16 @@ pub async fn menu_update(item: web::Json<MenuUpdateReq>, data: web::Data<AppStat
 
     let result = SysMenu::update_by_column(&mut rb, &sys_menu, "id").await;
 
-    Ok(web::Json(handle_result(result)))
+    json!(&handle_result(result))
 }
 
 
-#[post("/menu_delete")]
-pub async fn menu_delete(item: web::Json<MenuDeleteReq>, data: web::Data<AppState>) -> Result<impl Responder> {
+#[post("/menu_delete", data = "<item>")]
+pub async fn menu_delete(item: Json<MenuDeleteReq>) -> Value {
     log::info!("menu_delete params: {:?}", &item);
-    let mut rb = &data.batis;
+    let mut rb = RB.to_owned();
 
     let result = SysMenu::delete_in_column(&mut rb, "id", &item.ids).await;
 
-    Ok(web::Json(handle_result(result)))
+    json!(&handle_result(result))
 }
