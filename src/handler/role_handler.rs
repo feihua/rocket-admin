@@ -15,7 +15,7 @@ pub async fn role_list(item: Json<RoleListReq>) -> Value {
 
     let result = SysRole::select_page(&mut rb, &PageRequest::new(item.page_no, item.page_size)).await;
 
-    let resp = match result {
+    match result {
         Ok(d) => {
             let total = d.total;
             let page_no = d.page_no;
@@ -35,7 +35,7 @@ pub async fn role_list(item: Json<RoleListReq>) -> Value {
                 })
             }
 
-            RoleListResp {
+            json!(&RoleListResp {
                 msg: "successful".to_string(),
                 code: 0,
                 page_no,
@@ -43,22 +43,12 @@ pub async fn role_list(item: Json<RoleListReq>) -> Value {
                 success: true,
                 total,
                 data: Some(role_list),
-            }
+            })
         }
         Err(err) => {
-            RoleListResp {
-                msg: err.to_string(),
-                code: 1,
-                page_no: 0,
-                page_size: 0,
-                success: true,
-                total: 0,
-                data: None,
-            }
+            json!({"code":1,"msg":err.to_string()})
         }
-    };
-
-    json!(&resp)
+    }
 }
 
 

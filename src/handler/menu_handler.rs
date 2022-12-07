@@ -16,7 +16,7 @@ pub async fn menu_list(item: Json<MenuListReq>) -> Value {
 
     let result = SysMenu::select_page(&mut rb, &PageRequest::new(1, 1000)).await;
 
-    let resp = match result {
+    match result {
         Ok(d) => {
             let total = d.total;
 
@@ -39,24 +39,18 @@ pub async fn menu_list(item: Json<MenuListReq>) -> Value {
                     update_time: x.gmt_modified.unwrap().0.to_string(),
                 })
             }
-            MenuListResp {
+
+            json!(&MenuListResp {
                 msg: "successful".to_string(),
                 code: 0,
                 total,
                 data: Some(menu_list),
-            }
+            })
         }
         Err(err) => {
-            MenuListResp {
-                msg: err.to_string(),
-                code: 1,
-                total: 0,
-                data: None,
-            }
+            json!({"code":1,"msg":err.to_string()})
         }
-    };
-
-    json!(&resp)
+    }
 }
 
 #[post("/menu_save", data = "<item>")]
