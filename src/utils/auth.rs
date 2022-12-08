@@ -40,7 +40,9 @@ impl<'r> FromRequest<'r> for Token {
                     Outcome::Failure((Status::Unauthorized, ()))
                 };
             }
+            log::error!("token format wrong path: {}", path);
         }
+        log::error!("Authorization miss path: {}", path);
         Outcome::Failure((Status::Unauthorized, ()))
     }
 }

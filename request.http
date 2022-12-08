@@ -25,7 +25,7 @@ Authorization: Bearer {{auth_token}}
 ###用户列表 user_list
 POST {{host}}/api/user_list
 Content-Type: application/json
-#Authorization: Bearer {{auth_token}}
+Authorization: Bearer {{auth_token}}
 
 {
   "page_no": 1,
