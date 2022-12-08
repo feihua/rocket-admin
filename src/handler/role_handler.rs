@@ -62,7 +62,7 @@ pub async fn role_save(item: Json<RoleSaveReq>) -> Value {
     let sys_role = SysRole {
         id: None,
         gmt_create: Some(FastDateTime::now()),
-        gmt_modified: None,
+        gmt_modified: Some(FastDateTime::now()),
         status_id: Some(1),
         sort: Some(role.sort),
         role_name: Some(role.role_name),
@@ -118,6 +118,7 @@ pub async fn query_role_menu(item: Json<QueryRoleMenuReq>) -> Value {
     let menu_list = SysMenu::select_all(&mut rb).await;
 
     let mut menu_data_list: Vec<MenuDataList> = Vec::new();
+    let mut role_menus: Vec<i32> = Vec::new();
 
     for y in menu_list.unwrap_or_default() {
         let x = y.clone();
@@ -129,11 +130,16 @@ pub async fn query_role_menu(item: Json<QueryRoleMenuReq>) -> Value {
         });
     }
 
+    for x in role_menu_list.unwrap_or_default() {
+        let m_id=x.get("menu_id").unwrap();
+        role_menus.push(*m_id)
+    }
+
     let resp = QueryRoleMenuResp {
         msg: "successful".to_string(),
         code: 0,
         data: QueryRoleMenuData {
-            role_menus: role_menu_list.unwrap_or_default(),
+            role_menus,
             menu_list: menu_data_list,
         },
     };

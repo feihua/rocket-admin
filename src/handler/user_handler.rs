@@ -182,7 +182,7 @@ pub async fn user_save(item: Json<UserSaveReq>) -> Value {
     let sys_user = SysUser {
         id: None,
         gmt_create: Some(FastDateTime::now()),
-        gmt_modified: None,
+        gmt_modified: Some(FastDateTime::now()),
         status_id: Some(1),
         sort: Some(1),
         user_no: Some(1),
