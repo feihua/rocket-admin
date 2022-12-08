@@ -17,9 +17,10 @@ use rocket::serde::json::Value;
 use crate::handler::{menu_handler, role_handler, user_handler};
 use rbatis::rbatis::Rbatis;
 use rocket::Config;
+use crate::utils::auth::Token;
 
 #[get("/ping")]
-fn ping() -> &'static str {
+fn ping(_auth: Token) -> &'static str {
     "pong"
 }
 
@@ -31,6 +32,17 @@ fn not_found() -> Value {
     })
 }
 
+#[catch(401)]
+fn resp() -> Value {
+    json!({
+      "error": {
+        "code": 401,
+        "reason": "Unauthorized",
+        "description": "The request requires user authentication."
+      }
+    })
+}
+
 lazy_static! {
     static ref RB: Rbatis = Rbatis::new();
 }
@@ -39,7 +51,7 @@ lazy_static! {
 async fn main() -> Result<(), rocket::Error> {
     log4rs::init_file("src/config/log4rs.yaml", Default::default()).unwrap();
 
-    RB.init(rbdc_mysql::driver::MysqlDriver {}, "mysql://root:r-wz9wop62956dh5k9ed@rm-wz9a2yv489d123yqkdo.mysql.rds.aliyuncs.com:3306/zero-react").unwrap();
+    RB.init(rbdc_mysql::driver::MysqlDriver {}, "mysql://root:r-wz9wop62956dh5k9ed@rm-wz9a2yv489d123yqkdo.mysql.rds.aliyuncs.com:3306/rustdb").unwrap();
     let rb = Arc::new(&RB);
 
     let config = Config {
@@ -67,7 +79,7 @@ async fn main() -> Result<(), rocket::Error> {
             menu_handler::menu_save,
             menu_handler::menu_delete,
             menu_handler::menu_update,])
-        .register("/", catchers![not_found])
+        .register("/", catchers![not_found,resp])
         .manage(rb)
         .launch()
         .await?;

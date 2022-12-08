@@ -8,6 +8,7 @@ use crate::utils::jwt_util::JWTToken;
 use crate::vo::user_vo::*;
 use crate::vo::{BaseResponse, handle_result};
 use crate::RB;
+use crate::utils::auth::Token;
 
 #[post("/login", data = "<item>")]
 pub async fn login(item: Json<UserLoginReq>) -> Value {
@@ -73,7 +74,7 @@ pub async fn login(item: Json<UserLoginReq>) -> Value {
 
 
 #[post("/query_user_menu", data = "<item>")]
-pub async fn query_user_menu(item: Json<QueryUserMenuReq>) -> Value {
+pub async fn query_user_menu(item: Json<QueryUserMenuReq>, _auth: Token) -> Value {
     log::info!("query_user_menu params: {:?}", &item);
     let mut rb = RB.to_owned();
 
@@ -118,7 +119,7 @@ pub async fn query_user_menu(item: Json<QueryUserMenuReq>) -> Value {
 
 
 #[post("/user_list", data = "<item>")]
-pub async fn user_list(item: Json<UserListReq>) -> Value {
+pub async fn user_list(item: Json<UserListReq>, _auth: Token) -> Value {
     log::info!("query user_list params: {:?}", &item);
     let mut rb = RB.to_owned();
 
@@ -173,7 +174,7 @@ pub async fn user_list(item: Json<UserListReq>) -> Value {
 
 
 #[post("/user_save", data = "<item>")]
-pub async fn user_save(item: Json<UserSaveReq>) -> Value {
+pub async fn user_save(item: Json<UserSaveReq>, _auth: Token) -> Value {
     log::info!("user_save params: {:?}", &item);
 
     let user = item.0;
@@ -199,7 +200,7 @@ pub async fn user_save(item: Json<UserSaveReq>) -> Value {
 
 
 #[post("/user_update", data = "<item>")]
-pub async fn user_update(item: Json<UserUpdateReq>) -> Value {
+pub async fn user_update(item: Json<UserUpdateReq>, _auth: Token) -> Value {
     log::info!("user_update params: {:?}", &item);
 
     let user = item.0;
@@ -225,7 +226,7 @@ pub async fn user_update(item: Json<UserUpdateReq>) -> Value {
 
 
 #[post("/user_delete", data = "<item>")]
-pub async fn user_delete(item: Json<UserDeleteReq>) -> Value {
+pub async fn user_delete(item: Json<UserDeleteReq>, _auth: Token) -> Value {
     log::info!("user_delete params: {:?}", &item);
     let mut rb = RB.to_owned();
 

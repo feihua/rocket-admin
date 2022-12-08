@@ -4,12 +4,13 @@ use rbatis::rbdc::datetime::FastDateTime;
 use rbatis::sql::{PageRequest};
 use crate::model::entity::{SysRole, query_menu_by_role, SysMenu, SysMenuRole};
 use crate::RB;
+use crate::utils::auth::Token;
 use crate::vo::handle_result;
 use crate::vo::role_vo::*;
 
 
 #[post("/role_list", data = "<item>")]
-pub async fn role_list(item: Json<RoleListReq>) -> Value {
+pub async fn role_list(item: Json<RoleListReq>, _auth: Token) -> Value {
     log::info!("role_list params: {:?}", &item);
     let mut rb = RB.to_owned();
 
@@ -53,7 +54,7 @@ pub async fn role_list(item: Json<RoleListReq>) -> Value {
 
 
 #[post("/role_save", data = "<item>")]
-pub async fn role_save(item: Json<RoleSaveReq>) -> Value {
+pub async fn role_save(item: Json<RoleSaveReq>, _auth: Token) -> Value {
     println!("model: {:?}", &item);
     let mut rb = RB.to_owned();
 
@@ -76,7 +77,7 @@ pub async fn role_save(item: Json<RoleSaveReq>) -> Value {
 
 
 #[post("/role_update", data = "<item>")]
-pub async fn role_update(item: Json<RoleUpdateReq>) -> Value {
+pub async fn role_update(item: Json<RoleUpdateReq>, _auth: Token) -> Value {
     println!("item: {:?}", &item);
     let mut rb = RB.to_owned();
     let role = item.0;
@@ -98,7 +99,7 @@ pub async fn role_update(item: Json<RoleUpdateReq>) -> Value {
 
 
 #[post("/role_delete", data = "<item>")]
-pub async fn role_delete(item: Json<RoleDeleteReq>) -> Value {
+pub async fn role_delete(item: Json<RoleDeleteReq>, _auth: Token) -> Value {
     println!("item: {:?}", &item);
     let mut rb = RB.to_owned();
 
@@ -109,7 +110,7 @@ pub async fn role_delete(item: Json<RoleDeleteReq>) -> Value {
 
 
 #[post("/query_role_menu", data = "<item>")]
-pub async fn query_role_menu(item: Json<QueryRoleMenuReq>) -> Value {
+pub async fn query_role_menu(item: Json<QueryRoleMenuReq>, _auth: Token) -> Value {
     log::info!("query_role_menu params: {:?}", &item);
     let mut rb = RB.to_owned();
 
@@ -149,7 +150,7 @@ pub async fn query_role_menu(item: Json<QueryRoleMenuReq>) -> Value {
 
 
 #[post("/update_role_menu", data = "<item>")]
-pub async fn update_role_menu(item: Json<UpdateRoleMenuReq>) -> Value {
+pub async fn update_role_menu(item: Json<UpdateRoleMenuReq>, _auth: Token) -> Value {
     log::info!("update_role_menu params: {:?}", &item);
     let role_id = item.role_id;
 

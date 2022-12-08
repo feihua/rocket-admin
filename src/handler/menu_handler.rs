@@ -5,12 +5,13 @@ use rbatis::sql::{PageRequest};
 
 use crate::model::entity::{SysMenu};
 use crate::RB;
+use crate::utils::auth::Token;
 use crate::vo::handle_result;
 use crate::vo::menu_vo::{*};
 
 
 #[post("/menu_list", data = "<item>")]
-pub async fn menu_list(item: Json<MenuListReq>) -> Value {
+pub async fn menu_list(item: Json<MenuListReq>, _auth: Token) -> Value {
     log::info!("menu_list params: {:?}", &item);
     let mut rb = RB.to_owned();
 
@@ -54,7 +55,7 @@ pub async fn menu_list(item: Json<MenuListReq>) -> Value {
 }
 
 #[post("/menu_save", data = "<item>")]
-pub async fn menu_save(item: Json<MenuSaveReq>) -> Value {
+pub async fn menu_save(item: Json<MenuSaveReq>, _auth: Token) -> Value {
     log::info!("menu_save params: {:?}", &item);
     let mut rb = RB.to_owned();
 
@@ -81,7 +82,7 @@ pub async fn menu_save(item: Json<MenuSaveReq>) -> Value {
 }
 
 #[post("/menu_update", data = "<item>")]
-pub async fn menu_update(item: Json<MenuUpdateReq>) -> Value {
+pub async fn menu_update(item: Json<MenuUpdateReq>, _auth: Token) -> Value {
     log::info!("menu_update params: {:?}", &item);
     let mut rb = RB.to_owned();
     let menu = item.0;
@@ -108,7 +109,7 @@ pub async fn menu_update(item: Json<MenuUpdateReq>) -> Value {
 
 
 #[post("/menu_delete", data = "<item>")]
-pub async fn menu_delete(item: Json<MenuDeleteReq>) -> Value {
+pub async fn menu_delete(item: Json<MenuDeleteReq>, _auth: Token) -> Value {
     log::info!("menu_delete params: {:?}", &item);
     let mut rb = RB.to_owned();
 
