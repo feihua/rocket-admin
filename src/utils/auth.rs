@@ -36,11 +36,11 @@ impl<'r> FromRequest<'r> for Token {
                 return if flag {
                     Outcome::Success(Token)
                 } else {
-                    log::error!("no permissions path: {}, token: {}", path, token);
-                    Outcome::Failure((Status::Unauthorized, ()))
+                    log::error!("{} has no permissions request path: {}, token: {}", &jwt_token.username, path, token);
+                    Outcome::Failure((Status::Forbidden, ()))
                 };
             }
-            log::error!("token format wrong path: {}", path);
+            log::error!("the token format wrong path: {}", path);
         }
         log::error!("Authorization miss path: {}", path);
         Outcome::Failure((Status::Unauthorized, ()))

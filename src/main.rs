@@ -16,7 +16,7 @@ use rocket::serde::json::serde_json::json;
 use rocket::serde::json::Value;
 use crate::handler::{menu_handler, role_handler, user_handler};
 use rbatis::rbatis::Rbatis;
-use rocket::Config;
+use rocket::{Config, Request};
 use crate::utils::auth::Token;
 
 #[get("/ping")]
@@ -25,22 +25,19 @@ fn ping(_auth: Token) -> &'static str {
 }
 
 #[catch(404)]
-fn not_found() -> Value {
-    json!({
-        "status": "error",
-        "reason": "Resource was not found."
-    })
+fn not_found(req: &Request) -> Value {
+    json!({"code": 1,"msg": format!("Sorry, '{}' is not a valid path", req.uri())})
 }
+
+#[catch(403)]
+fn not_permissions(req: &Request) -> Value {
+    json!({"code": 1,"msg": format!("you has no permissions request path: '{}'", req.uri())})
+}
+
 
 #[catch(401)]
 fn resp() -> Value {
-    json!({
-      "error": {
-        "code": 401,
-        "reason": "Unauthorized",
-        "description": "The request requires user authentication."
-      }
-    })
+    json!({"code": 401,"msg": "Unauthorized","description": "The request requires user authentication"})
 }
 
 lazy_static! {
@@ -79,7 +76,7 @@ async fn main() -> Result<(), rocket::Error> {
             menu_handler::menu_save,
             menu_handler::menu_delete,
             menu_handler::menu_update,])
-        .register("/", catchers![not_found,resp])
+        .register("/", catchers![not_found,resp,not_permissions])
         .manage(rb)
         .launch()
         .await?;
