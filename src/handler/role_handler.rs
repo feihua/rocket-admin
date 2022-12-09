@@ -14,7 +14,11 @@ pub async fn role_list(item: Json<RoleListReq>, _auth: Token) -> Value {
     log::info!("role_list params: {:?}", &item);
     let mut rb = RB.to_owned();
 
-    let result = SysRole::select_page(&mut rb, &PageRequest::new(item.page_no, item.page_size)).await;
+    let role_name = item.role_name.as_deref().unwrap_or_default();
+    let status_id = item.status_id.as_deref().unwrap_or_default();
+
+    let page=&PageRequest::new(item.page_no, item.page_size);
+    let result = SysRole::select_page_by_name(&mut rb, page,role_name,status_id).await;
 
     match result {
         Ok(d) => {
