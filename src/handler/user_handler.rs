@@ -73,9 +73,9 @@ pub async fn login(item: Json<UserLoginReq>) -> Value {
 }
 
 
-#[post("/query_user_menu", data = "<item>")]
-pub async fn query_user_menu(item: Json<QueryUserMenuReq>, _auth: Token) -> Value {
-    log::info!("query_user_menu params: {:?}", &item);
+#[get("/query_user_menu")]
+pub async fn query_user_menu(auth: Token) -> Value {
+    log::info!("query_user_menu params: {:?}", auth);
     let mut rb = RB.to_owned();
 
     let sys_user = SysUser::select_by_column(&mut rb, "id", "1").await;

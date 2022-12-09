@@ -13,7 +13,6 @@ pub struct UserLoginReq {
 pub struct UserLoginResp {
     pub msg: String,
     pub code: i32,
-    pub status: String,
     pub data: Option<UserLoginData>,
 }
 
