@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct RoleListReq {
+    #[serde(rename = "current")]
     pub page_no: u64,
+    #[serde(rename = "pageSize")]
     pub page_size: u64,
     pub role_name: Option<String>,
     pub status_id: Option<i32>,

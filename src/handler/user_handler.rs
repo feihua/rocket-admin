@@ -13,7 +13,7 @@ use crate::utils::auth::Token;
 #[post("/login", data = "<item>")]
 pub async fn login(item: Json<UserLoginReq>) -> Value {
     log::info!("user login params: {:?}", &item);
-    let mut rb=RB.to_owned();
+    let mut rb = RB.to_owned();
 
     let user_result = SysUser::select_by_column(&mut rb, "mobile", &item.mobile).await;
     log::info!("select_by_column: {:?}",user_result);
@@ -88,15 +88,17 @@ pub async fn query_user_menu(auth: Token) -> Value {
 
     for x in data.unwrap().records {
         let y = x.clone();
-        sys_menu.push(MenuUserList {
-            id: y.id.unwrap(),
-            parent_id: y.parent_id.unwrap(),
-            name: y.menu_name.unwrap_or_default(),
-            icon: y.menu_icon.unwrap_or_default(),
-            api_url: y.api_url.as_ref().unwrap().to_string(),
-            menu_type: y.menu_type.unwrap(),
-            path: y.api_url.unwrap_or_default(),
-        });
+        if y.menu_type != Some(3) {
+            sys_menu.push(MenuUserList {
+                id: y.id.unwrap(),
+                parent_id: y.parent_id.unwrap(),
+                name: y.menu_name.unwrap_or_default(),
+                icon: y.menu_icon.unwrap_or_default(),
+                api_url: y.api_url.as_ref().unwrap().to_string(),
+                menu_type: y.menu_type.unwrap(),
+                path: y.menu_url.unwrap_or_default(),
+            });
+        }
 
         btn_menu.push(x.api_url.unwrap_or_default());
         btn_menu_str.push_str(&x.menu_name.unwrap_or_default());
