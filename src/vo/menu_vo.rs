@@ -37,9 +37,8 @@ pub struct MenuListData {
 pub struct MenuSaveReq {
     pub sort: i32,
     pub status_id: i32,
-    pub parent_id: i32,
+    pub parent_id: Option<i32>,
     pub menu_name: String,
-    pub label: String,
     pub menu_url: String,
     pub icon: String,
     pub api_url: String,
@@ -55,7 +54,6 @@ pub struct MenuUpdateReq {
     pub status_id: i32,
     pub parent_id: i32,
     pub menu_name: String,
-    pub label: String,
     pub menu_url: String,
     pub icon: String,
     pub api_url: String,

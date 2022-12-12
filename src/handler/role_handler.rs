@@ -131,7 +131,7 @@ pub async fn query_role_menu(item: Json<QueryRoleMenuReq>, _auth: Token) -> Valu
             id: x.id.unwrap(),
             parent_id: x.parent_id.unwrap(),
             title: x.menu_name.unwrap_or_default(),
-            key: "x.id.to_string()".to_string(),
+            key: y.id.unwrap().to_string(),
         });
     }
 
