@@ -2,7 +2,7 @@ use rocket::serde::json::{Json, Value};
 use rocket::serde::json::serde_json::json;
 use rbatis::rbdc::datetime::FastDateTime;
 use rbatis::sql::{PageRequest};
-use crate::model::entity::{SysMenu, SysUser};
+use crate::model::entity::{SysMenu, SysRole, SysRoleUser, SysUser};
 use crate::utils::error::WhoUnfollowedError;
 use crate::utils::jwt_util::JWTToken;
 use crate::vo::user_vo::*;
@@ -72,6 +72,80 @@ pub async fn login(item: Json<UserLoginReq>) -> Value {
     }
 }
 
+
+#[post("/query_user_role", data = "<item>")]
+pub async fn query_user_role(item: Json<QueryUserRoleReq>, _auth: Token) -> Value {
+    log::info!("query_user_role params: {:?}", item);
+    let mut rb = RB.to_owned();
+
+    let sys_role = SysRole::select_page(&mut rb, &PageRequest::new(1, 1000)).await;
+
+    let mut sys_role_list: Vec<UserRoleList> = Vec::new();
+    let mut user_role_ids: Vec<i32> = Vec::new();
+
+    for x in sys_role.unwrap().records {
+        sys_role_list.push(UserRoleList {
+            id: x.id.unwrap(),
+            status_id: x.status_id.unwrap(),
+            sort: x.sort.unwrap(),
+            role_name: x.role_name.unwrap_or_default(),
+            remark: x.remark.unwrap_or_default(),
+            create_time: x.gmt_create.unwrap().0.to_string(),
+            update_time: x.gmt_modified.unwrap().0.to_string(),
+        });
+
+        user_role_ids.push(x.id.unwrap_or_default());
+    }
+
+    let resp = QueryUserRoleResp {
+        msg: "successful".to_string(),
+        code: 0,
+        data: QueryUserRoleData {
+            sys_role_list,
+            user_role_ids,
+        },
+    };
+
+    json!(&resp)
+}
+
+#[post("/update_user_role", data = "<item>")]
+pub async fn update_user_role(item: Json<UpdateUserRoleReq>, _auth: Token) -> Value {
+    log::info!("update_user_role params: {:?}", item);
+    let mut rb = RB.to_owned();
+
+    let user_role = item.0;
+    let user_id = user_role.user_id;
+    let role_ids = &user_role.role_ids;
+    let len = user_role.role_ids.len();
+
+    if user_id == 1 {
+        return json!({"code":1,"msg":"不能修改超级管理员的角色"});
+    }
+
+    let sys_result = SysRoleUser::delete_by_column(&mut rb, "user_id", user_id).await;
+
+    if sys_result.is_err() {
+        return json!({"code":1,"msg":"更新用户角色异常"});
+    }
+
+    let mut sys_role_user_list: Vec<SysRoleUser> = Vec::new();
+    for role_id in role_ids {
+        sys_role_user_list.push(SysRoleUser {
+            id: None,
+            gmt_create: Some(FastDateTime::now()),
+            gmt_modified: Some(FastDateTime::now()),
+            status_id: Some(1),
+            sort: Some(1),
+            role_id: Some(*role_id),
+            user_id: Some(user_id),
+        })
+    }
+
+    let result = SysRoleUser::insert_batch(&mut rb, &sys_role_user_list, len as u64).await;
+
+    json!(&handle_result(result))
+}
 
 #[get("/query_user_menu")]
 pub async fn query_user_menu(auth: Token) -> Value {

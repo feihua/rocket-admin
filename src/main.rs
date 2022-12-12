@@ -61,6 +61,8 @@ async fn main() -> Result<(), rocket::Error> {
         .configure(config)
         .mount("/", routes![ping])
         .mount("/api", routes![user_handler::login,
+            user_handler::query_user_role,
+            user_handler::update_user_role,
             user_handler::query_user_menu,
             user_handler::user_list,
             user_handler::user_save,
