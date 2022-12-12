@@ -128,8 +128,8 @@ pub async fn user_list(item: Json<UserListReq>, _auth: Token) -> Value {
     let mobile = item.mobile.as_deref().unwrap_or_default();
     let status_id = item.status_id.as_deref().unwrap_or_default();
 
-    let page=&PageRequest::new(item.page_no, item.page_size);
-    let result = SysUser::select_page_by_name(&mut rb, page,mobile,status_id).await;
+    let page = &PageRequest::new(item.page_no, item.page_size);
+    let result = SysUser::select_page_by_name(&mut rb, page, mobile, status_id).await;
 
     let resp = match result {
         Ok(d) => {
@@ -241,3 +241,26 @@ pub async fn user_delete(item: Json<UserDeleteReq>, _auth: Token) -> Value {
     json!(&handle_result(result))
 }
 
+#[post("/update_user_password", data = "<item>")]
+pub async fn update_user_password(item: Json<UpdateUserPwdReq>, _auth: Token) -> Value {
+    log::info!("update_user_pwd params: {:?}", &item);
+
+    let user_pwd = item.0;
+
+    let mut rb = RB.to_owned();
+
+    let user_result = SysUser::select_by_id(&mut rb, &user_pwd.id).await;
+
+    match user_result {
+        Ok(user) => {
+            let mut sys_user = user.unwrap();
+            sys_user.password = Some(user_pwd.re_pwd);
+            let result = SysUser::update_by_column(&mut rb, &sys_user, "id").await;
+
+            json!(&handle_result(result))
+        }
+        Err(err) => {
+            json!({"code":1,"msg":err.to_string()})
+        }
+    }
+}

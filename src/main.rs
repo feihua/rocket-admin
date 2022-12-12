@@ -66,6 +66,7 @@ async fn main() -> Result<(), rocket::Error> {
             user_handler::user_save,
             user_handler::user_delete,
             user_handler::user_update,
+            user_handler::update_user_password,
             role_handler::query_role_menu,
             role_handler::update_role_menu,
             role_handler::role_list,

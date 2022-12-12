@@ -116,3 +116,11 @@ pub struct UserUpdateReq {
 pub struct UserDeleteReq {
     pub ids: Vec<i32>,
 }
+
+#[derive(Debug, Deserialize)]
+#[serde(crate = "rocket::serde")]
+pub struct UpdateUserPwdReq {
+    pub id: i32,
+    pub pwd: String,
+    pub re_pwd: String,
+}
