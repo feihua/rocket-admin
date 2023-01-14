@@ -17,8 +17,8 @@ pub async fn role_list(item: Json<RoleListReq>, _auth: Token) -> Value {
     let role_name = item.role_name.as_deref().unwrap_or_default();
     let status_id = item.status_id.as_deref().unwrap_or_default();
 
-    let page=&PageRequest::new(item.page_no, item.page_size);
-    let result = SysRole::select_page_by_name(&mut rb, page,role_name,status_id).await;
+    let page = &PageRequest::new(item.page_no, item.page_size);
+    let result = SysRole::select_page_by_name(&mut rb, page, role_name, status_id).await;
 
     match result {
         Ok(d) => {
@@ -132,11 +132,13 @@ pub async fn query_role_menu(item: Json<QueryRoleMenuReq>, _auth: Token) -> Valu
             parent_id: x.parent_id.unwrap(),
             title: x.menu_name.unwrap_or_default(),
             key: y.id.unwrap().to_string(),
+            label: y.menu_name.unwrap_or_default(),
+            is_penultimate: y.parent_id == Some(2)
         });
     }
 
     for x in role_menu_list.unwrap_or_default() {
-        let m_id=x.get("menu_id").unwrap();
+        let m_id = x.get("menu_id").unwrap();
         role_menus.push(*m_id)
     }
 

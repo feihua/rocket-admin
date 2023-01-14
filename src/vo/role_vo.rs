@@ -86,6 +86,9 @@ pub struct MenuDataList {
     pub parent_id: i32,
     pub title: String,
     pub key: String,
+    pub label: String,
+    #[serde(rename = "isPenultimate")]
+    pub is_penultimate: bool,
 }
 
 #[derive(Debug, Deserialize)]
