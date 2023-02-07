@@ -13,9 +13,9 @@ log = "0.4"
 log4rs = "1.0"
 
 rbs = { version = "0.1"}
-rbatis = { version = "4.0"}
+rbatis = { version = "4.0" }
 #rbatis = { version = "4.0",features = ["debug_mode"]}
-rbdc-mysql={version="0.1"}
+rbdc-mysql = { version = "0.1" }
 
 jsonwebtoken = "8"
 
@@ -23,3 +23,5 @@ futures = { version = "0.3", default-features = false }
 thiserror = "1.0"
 
 lazy_static = "1.4.0"
+
+rocket_cors = "0.6.0-alpha1"

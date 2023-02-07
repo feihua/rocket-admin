@@ -17,6 +17,7 @@ use rocket::serde::json::Value;
 use crate::handler::{menu_handler, role_handler, user_handler};
 use rbatis::rbatis::Rbatis;
 use rocket::{Config, Request};
+use rocket_cors::{AllowedHeaders, AllowedOrigins, Cors};
 use crate::utils::auth::Token;
 
 #[get("/ping")]
@@ -42,6 +43,15 @@ fn resp() -> Value {
 
 lazy_static! {
     static ref RB: Rbatis = Rbatis::new();
+}
+
+fn rocket_cors_config() -> Cors {
+    rocket_cors::CorsOptions {
+        allowed_origins: AllowedOrigins::All,
+        allowed_headers: AllowedHeaders::All,
+        allow_credentials: true,
+        ..Default::default()
+    }.to_cors().expect("哈哈,出错了!")
 }
 
 #[rocket::main]
@@ -81,6 +91,7 @@ async fn main() -> Result<(), rocket::Error> {
             menu_handler::menu_update,])
         .register("/", catchers![not_found,resp,not_permissions])
         .manage(rb)
+        .attach(rocket_cors_config())
         .launch()
         .await?;
 
