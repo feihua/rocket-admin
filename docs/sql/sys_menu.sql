@@ -40,13 +40,71 @@ INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, 
 INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon, remark, menu_type) VALUES (20, '2022-07-14 17:40:12', '2022-07-14 17:40:12', 1, 1, 4, '保存角色接口', '', '/api/role_save', ' ', '保存角色接口', 3);
 INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon, remark, menu_type) VALUES (21, '2022-07-14 17:40:12', '2022-07-14 17:40:12', 1, 1, 4, '删除角色接口', '', '/api/role_delete', ' ', '删除角色接口', 3);
 INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon, remark, menu_type) VALUES (22, '2022-07-14 17:40:12', '2022-07-14 17:40:12', 1, 1, 4, '修改角色弹窗', '', '/api/role_update_view', ' ', '修改角色弹窗', 3);
-INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon, remark, menu_type) VALUES (23, '2022-07-14 17:40:12', '2022-07-14 17:40:12', 1, 1, 4, '更新角色接口', '', '/api/role_update', ' ', '更新角色接口', 3);
-INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon, remark, menu_type) VALUES (24, '2022-07-14 17:40:12', '2022-07-14 17:40:12', 0, 1, 4, '设置权限弹窗', '', '/api/query_role_menu_view', ' ', '设置权限弹窗', 3);
-INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon, remark, menu_type) VALUES (25, '2022-07-14 17:40:12', '2022-07-14 17:40:12', 1, 1, 4, '菜单角色关联', '', '/api/query_role_menu', ' ', '菜单角色关联', 3);
-INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon, remark, menu_type) VALUES (26, '2022-07-14 17:40:12', '2022-07-14 17:40:12', 1, 1, 4, '保存角色菜单关联', '', '/api/update_role_menu', ' ', '角色菜单关联接口', 3);
-INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon, remark, menu_type) VALUES (27, '2022-07-14 17:40:12', '2022-07-14 17:40:12', 1, 1, 5, '更新菜单状态接口', '', '/api/update_menu_status', ' ', '更新菜单状态接口', 3);
-INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon, remark, menu_type) VALUES (28, '2022-07-14 17:40:12', '2022-07-14 17:40:12', 1, 1, 5, '保存菜单弹窗', '', '/api/menu_save_view', ' ', '保存菜单弹窗', 3);
-INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon, remark, menu_type) VALUES (29, '2022-07-14 17:40:12', '2022-07-14 17:40:12', 1, 1, 5, '保存菜单接口', '', '/api/menu_save', ' ', '保存菜单接口', 3);
-INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon, remark, menu_type) VALUES (30, '2022-07-14 17:40:12', '2022-07-14 17:40:12', 1, 1, 5, '删除菜单接口', '', '/api/menu_delete', ' ', '删除菜单接口', 3);
-INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon, remark, menu_type) VALUES (31, '2022-07-14 17:40:13', '2022-07-14 17:40:13', 1, 1, 5, '修改菜单弹窗', '', '/api/menu_update_view', ' ', '修改菜单弹窗', 3);
-INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon, remark, menu_type) VALUES (32, '2022-07-14 17:40:13', '2022-07-14 17:40:13', 1, 1, 5, '更新菜单接口', '', '/api/menu_update', ' ', '更新菜单接口', 3);
+INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon,
+                      remark, menu_type)
+VALUES (23, '2022-07-14 17:40:12', '2022-07-14 17:40:12', 1, 1, 4, '更新角色接口', '', '/api/role_update', ' ',
+        '更新角色接口', 3);
+INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon,
+                      remark, menu_type)
+VALUES (24, '2022-07-14 17:40:12', '2022-07-14 17:40:12', 0, 1, 4, '设置权限弹窗', '', '/api/query_role_menu_view', ' ',
+        '设置权限弹窗', 3);
+INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon,
+                      remark, menu_type)
+VALUES (25, '2022-07-14 17:40:12', '2022-07-14 17:40:12', 1, 1, 4, '菜单角色关联', '', '/api/query_role_menu', ' ',
+        '菜单角色关联', 3);
+INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon,
+                      remark, menu_type)
+VALUES (26, '2022-07-14 17:40:12', '2022-07-14 17:40:12', 1, 1, 4, '保存角色菜单关联', '', '/api/update_role_menu', ' ',
+        '角色菜单关联接口', 3);
+INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon,
+                      remark, menu_type)
+VALUES (27, '2022-07-14 17:40:12', '2022-07-14 17:40:12', 1, 1, 5, '更新菜单状态接口', '', '/api/update_menu_status',
+        ' ', '更新菜单状态接口', 3);
+INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon,
+                      remark, menu_type)
+VALUES (28, '2022-07-14 17:40:12', '2022-07-14 17:40:12', 1, 1, 5, '保存菜单弹窗', '', '/api/menu_save_view', ' ',
+        '保存菜单弹窗', 3);
+INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon,
+                      remark, menu_type)
+VALUES (29, '2022-07-14 17:40:12', '2022-07-14 17:40:12', 1, 1, 5, '保存菜单接口', '', '/api/menu_save', ' ',
+        '保存菜单接口', 3);
+INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon,
+                      remark, menu_type)
+VALUES (30, '2022-07-14 17:40:12', '2022-07-14 17:40:12', 1, 1, 5, '删除菜单接口', '', '/api/menu_delete', ' ',
+        '删除菜单接口', 3);
+INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon,
+                      remark, menu_type)
+VALUES (31, '2022-07-14 17:40:13', '2022-07-14 17:40:13', 1, 1, 5, '修改菜单弹窗', '', '/api/menu_update_view', ' ',
+        '修改菜单弹窗', 3);
+INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon,
+                      remark, menu_type)
+VALUES (32, '2022-07-14 17:40:13', '2022-07-14 17:40:13', 1, 1, 5, '更新菜单接口', '', '/api/menu_update', ' ',
+        '更新菜单接口', 3);
+INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon,
+                      remark, menu_type)
+VALUES (63, '2023-01-14 15:23:42', '2023-01-14 15:23:42', 1, 1, 0, '日志管理', '/log1', '', 'Setting', '', 1);
+INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon,
+                      remark, menu_type)
+VALUES (64, '2023-01-14 15:24:07', '2023-01-14 15:24:07', 1, 1, 63, '登录日志', '/log', '', 'Setting', '', 2);
+INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon,
+                      remark, menu_type)
+VALUES (65, '2023-01-14 15:24:51', '2023-01-14 15:24:51', 1, 1, 0, '常用图表', '/line1', '', 'Setting', '', 1);
+INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon,
+                      remark, menu_type)
+VALUES (66, '2023-01-14 15:25:15', '2023-01-14 15:25:15', 1, 1, 65, '饼图', '/bar', '', 'Setting', '', 2);
+INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon,
+                      remark, menu_type)
+VALUES (67, '2023-01-14 15:25:38', '2023-01-14 15:25:38', 1, 1, 65, '线图', '/line', '', 'Setting', '', 2);
+INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon,
+                      remark, menu_type)
+VALUES (68, '2023-01-14 15:25:52', '2023-01-14 15:25:52', 1, 1, 65, '柱状图', '/pie', '', 'Setting', '', 2);
+INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon,
+                      remark, menu_type)
+VALUES (69, '2023-01-14 15:26:47', '2023-01-14 15:26:47', 1, 1, 0, '个人中心', '/center1', '', 'Setting', '', 1);
+INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon,
+                      remark, menu_type)
+VALUES (72, '2023-01-14 15:27:29', '2023-01-15 18:35:48', 1, 1, 69, '个人信息', '/center', '', 'Setting', '', 2);
+INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon,
+                      remark, menu_type)
+VALUES (73, '2023-01-14 15:27:47', '2023-01-14 15:27:47', 1, 1, 69, '个人设置', '/setting', '', 'Setting', '', 2);
+
