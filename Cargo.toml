@@ -23,5 +23,3 @@ futures = { version = "0.3", default-features = false }
 thiserror = "1.0"
 
 lazy_static = "1.4.0"
-
-rocket_cors = "0.6.0-alpha1"
