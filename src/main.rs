@@ -15,9 +15,8 @@ use std::sync::Arc;
 use rocket::serde::json::serde_json::json;
 use rocket::serde::json::Value;
 use crate::handler::{menu_handler, role_handler, user_handler};
-use rbatis::rbatis::Rbatis;
+use rbatis::rbatis::RBatis;
 use rocket::{Config, Request};
-use rocket_cors::{AllowedHeaders, AllowedOrigins, Cors};
 use crate::utils::auth::Token;
 
 #[get("/ping")]
@@ -42,23 +41,14 @@ fn resp() -> Value {
 }
 
 lazy_static! {
-    static ref RB: Rbatis = Rbatis::new();
-}
-
-fn rocket_cors_config() -> Cors {
-    rocket_cors::CorsOptions {
-        allowed_origins: AllowedOrigins::All,
-        allowed_headers: AllowedHeaders::All,
-        allow_credentials: true,
-        ..Default::default()
-    }.to_cors().expect("哈哈,出错了!")
+    static ref RB: RBatis = RBatis::new();
 }
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
     log4rs::init_file("src/config/log4rs.yaml", Default::default()).unwrap();
 
-    RB.init(rbdc_mysql::driver::MysqlDriver {}, "mysql://root:r-wz9wop62956dh5k9ed@rm-wz9a2yv489d123yqkdo.mysql.rds.aliyuncs.com:3306/rustdb").unwrap();
+    RB.init(rbdc_mysql::driver::MysqlDriver {}, "mysql://root:ad879037-c7a4-4063-9236-6bfc35d54b7d@139.159.180.129:3306/rustdb").unwrap();
     let rb = Arc::new(&RB);
 
     let config = Config {
@@ -91,7 +81,6 @@ async fn main() -> Result<(), rocket::Error> {
             menu_handler::menu_update,])
         .register("/", catchers![not_found,resp,not_permissions])
         .manage(rb)
-        .attach(rocket_cors_config())
         .launch()
         .await?;
 
