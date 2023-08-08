@@ -1,5 +1,5 @@
 [package]
-name = "rocket_admin"
+name = "rocket-admin"
 version = "0.1.0"
 edition = "2021"
 
