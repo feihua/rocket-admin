@@ -5,6 +5,6 @@ ENV TZ Asia/Shanghai
 WORKDIR /app
 
 COPY src/config/log4rs.yaml /app/src/config/log4rs.yaml
-COPY ./target/release/rocket_admin /app/
+COPY ./target/release/rocket-admin /app/
 
-CMD ["./rocket_admin"]
+CMD ["./rocket-admin"]
