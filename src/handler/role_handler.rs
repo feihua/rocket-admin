@@ -8,7 +8,7 @@ use crate::model::role_menu::{query_menu_by_role, SysRoleMenu};
 use crate::model::user_role::SysUserRole;
 use crate::RB;
 use crate::utils::auth::Token;
-use crate::vo::{BaseResponse, handle_result};
+use crate::vo::{BaseResponse, err_result_msg, err_result_page, handle_result, ok_result_data, ok_result_page};
 use crate::vo::role_vo::*;
 
 // 查询角色列表
@@ -41,16 +41,10 @@ pub async fn role_list(item: Json<RoleListReq>, _auth: Token) -> Value {
                 })
             }
 
-            json!(&RoleListResp {
-                msg: "查询角色列表成功".to_string(),
-                code: 0,
-                success: true,
-                total,
-                data: Some(role_list),
-            })
+            json!(ok_result_page(role_list, total))
         }
         Err(err) => {
-            json!({"code":1,"msg":err.to_string()})
+            json!(err_result_page(err.to_string()))
         }
     }
 }
@@ -111,11 +105,7 @@ pub async fn role_delete(item: Json<RoleDeleteReq>, _auth: Token) -> Value {
     let user_role_list = SysUserRole::select_in_column(&mut rb, "role_id", &ids).await.unwrap_or_default();
 
     if user_role_list.len() > 0 {
-        return json!(&BaseResponse {
-            msg: "角色已被使用,不能直接删除".to_string(),
-            code: 1,
-            data: Some("None".to_string()),
-        });
+        return json!(err_result_msg("角色已被使用,不能直接删除".to_string()));
     }
 
     let result = SysRole::delete_in_column(&mut rb, "id", &item.ids).await;
@@ -159,14 +149,10 @@ pub async fn query_role_menu(item: Json<QueryRoleMenuReq>, _auth: Token) -> Valu
         }
     }
 
-    json!(QueryRoleMenuResp {
-        msg: "successful".to_string(),
-        code: 0,
-        data: QueryRoleMenuData {
+    json!(ok_result_data(QueryRoleMenuData {
             role_menus: role_menu_ids,
             menu_list: menu_data_list,
-        },
-    })
+        }))
 }
 
 // 更新角色关联的菜单
@@ -201,11 +187,7 @@ pub async fn update_role_menu(item: Json<UpdateRoleMenuReq>, _auth: Token) -> Va
             json!(&handle_result(result))
         }
         Err(err) => {
-            json!(BaseResponse {
-                msg: err.to_string(),
-                code: 1,
-                data: Some("None".to_string()),
-            })
+            json!(err_result_msg(err.to_string()))
         }
     }
 }

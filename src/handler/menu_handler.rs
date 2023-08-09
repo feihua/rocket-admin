@@ -5,7 +5,7 @@ use rbatis::rbdc::datetime::DateTime;
 use crate::model::menu::{SysMenu};
 use crate::RB;
 use crate::utils::auth::Token;
-use crate::vo::{BaseResponse, handle_result};
+use crate::vo::{err_result_msg, err_result_page, handle_result, ok_result_page};
 use crate::vo::menu_vo::{*};
 
 // 查询菜单
@@ -39,14 +39,10 @@ pub async fn menu_list(item: Json<MenuListReq>, _auth: Token) -> Value {
                 })
             }
 
-            json!(&MenuListResp {
-                msg: "查询菜单成功".to_string(),
-                code: 0,
-                data: Some(menu_list),
-            })
+            json!(ok_result_page(menu_list, 0))
         }
         Err(err) => {
-            json!({"code":1,"msg":err.to_string()})
+            json!(err_result_page(err.to_string()))
         }
     }
 }
@@ -106,7 +102,7 @@ pub async fn menu_update(item: Json<MenuUpdateReq>, _auth: Token) -> Value {
     json!(&handle_result(result))
 }
 
-
+// 删除菜单信息
 #[post("/menu_delete", data = "<item>")]
 pub async fn menu_delete(item: Json<MenuDeleteReq>, _auth: Token) -> Value {
     log::info!("menu_delete params: {:?}", &item);
@@ -116,11 +112,7 @@ pub async fn menu_delete(item: Json<MenuDeleteReq>, _auth: Token) -> Value {
     let menus = SysMenu::select_by_column(&mut rb, "parent_id", &item.id).await.unwrap_or_default();
 
     if menus.len() > 0 {
-        return  json!(&BaseResponse {
-            msg: "有下级菜单,不能直接删除".to_string(),
-            code: 1,
-            data: Some("None".to_string()),
-        });
+        return  json!(err_result_msg("有下级菜单,不能直接删除".to_string()));
     }
 
     let result = SysMenu::delete_by_column(&mut rb, "id", &item.id).await;
