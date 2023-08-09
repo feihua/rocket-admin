@@ -5,12 +5,13 @@ use rbatis::sql::{PageRequest};
 use crate::model::role::{SysRole};
 use crate::model::menu::{SysMenu};
 use crate::model::role_menu::{query_menu_by_role, SysRoleMenu};
+use crate::model::user_role::SysUserRole;
 use crate::RB;
 use crate::utils::auth::Token;
-use crate::vo::handle_result;
+use crate::vo::{BaseResponse, handle_result};
 use crate::vo::role_vo::*;
 
-
+// 查询角色列表
 #[post("/role_list", data = "<item>")]
 pub async fn role_list(item: Json<RoleListReq>, _auth: Token) -> Value {
     log::info!("role_list params: {:?}", &item);
@@ -19,29 +20,29 @@ pub async fn role_list(item: Json<RoleListReq>, _auth: Token) -> Value {
     let role_name = item.role_name.as_deref().unwrap_or_default();
     let status_id = item.status_id.as_deref().unwrap_or_default();
 
-    let page = &PageRequest::new(item.page_no, item.page_size);
-    let result = SysRole::select_page_by_name(&mut rb, page, role_name, status_id).await;
+    let page_req = &PageRequest::new(item.page_no.clone(), item.page_size.clone());
+    let result = SysRole::select_page_by_name(&mut rb, page_req, role_name, status_id).await;
 
     match result {
-        Ok(d) => {
-            let total = d.total;
+        Ok(page) => {
+            let total = page.total;
 
             let mut role_list: Vec<RoleListData> = Vec::new();
 
-            for x in d.records {
+            for role in page.records {
                 role_list.push(RoleListData {
-                    id: x.id.unwrap(),
-                    sort: x.sort,
-                    status_id: x.status_id,
-                    role_name: x.role_name,
-                    remark: x.remark.unwrap_or_default(),
-                    create_time: x.create_time.unwrap().0.to_string(),
-                    update_time: x.update_time.unwrap().0.to_string(),
+                    id: role.id.unwrap(),
+                    sort: role.sort,
+                    status_id: role.status_id,
+                    role_name: role.role_name,
+                    remark: role.remark.unwrap_or_default(),
+                    create_time: role.create_time.unwrap().0.to_string(),
+                    update_time: role.update_time.unwrap().0.to_string(),
                 })
             }
 
             json!(&RoleListResp {
-                msg: "successful".to_string(),
+                msg: "查询角色列表成功".to_string(),
                 code: 0,
                 success: true,
                 total,
@@ -54,10 +55,10 @@ pub async fn role_list(item: Json<RoleListReq>, _auth: Token) -> Value {
     }
 }
 
-
+// 添加角色信息
 #[post("/role_save", data = "<item>")]
 pub async fn role_save(item: Json<RoleSaveReq>, _auth: Token) -> Value {
-    println!("model: {:?}", &item);
+    log::info!("role_save params: {:?}", &item);
     let mut rb = RB.to_owned();
 
     let role = item.0;
@@ -77,11 +78,12 @@ pub async fn role_save(item: Json<RoleSaveReq>, _auth: Token) -> Value {
     json!(&handle_result(result))
 }
 
-
+// 更新角色信息
 #[post("/role_update", data = "<item>")]
 pub async fn role_update(item: Json<RoleUpdateReq>, _auth: Token) -> Value {
-    println!("item: {:?}", &item);
+    log::info!("role_update params: {:?}", &item);
     let mut rb = RB.to_owned();
+
     let role = item.0;
 
     let sys_role = SysRole {
@@ -99,18 +101,29 @@ pub async fn role_update(item: Json<RoleUpdateReq>, _auth: Token) -> Value {
     json!(&handle_result(result))
 }
 
-
+// 删除角色信息
 #[post("/role_delete", data = "<item>")]
 pub async fn role_delete(item: Json<RoleDeleteReq>, _auth: Token) -> Value {
-    println!("item: {:?}", &item);
+    log::info!("role_delete params: {:?}", &item);
     let mut rb = RB.to_owned();
+
+    let ids = item.ids.clone();
+    let user_role_list = SysUserRole::select_in_column(&mut rb, "role_id", &ids).await.unwrap_or_default();
+
+    if user_role_list.len() > 0 {
+        return json!(&BaseResponse {
+            msg: "角色已被使用,不能直接删除".to_string(),
+            code: 1,
+            data: Some("None".to_string()),
+        });
+    }
 
     let result = SysRole::delete_in_column(&mut rb, "id", &item.ids).await;
 
     json!(&handle_result(result))
 }
 
-
+// 查询角色关联的菜单
 #[post("/query_role_menu", data = "<item>")]
 pub async fn query_role_menu(item: Json<QueryRoleMenuReq>, _auth: Token) -> Value {
     log::info!("query_role_menu params: {:?}", &item);
@@ -146,19 +159,17 @@ pub async fn query_role_menu(item: Json<QueryRoleMenuReq>, _auth: Token) -> Valu
         }
     }
 
-    let resp = QueryRoleMenuResp {
+    json!(QueryRoleMenuResp {
         msg: "successful".to_string(),
         code: 0,
         data: QueryRoleMenuData {
             role_menus: role_menu_ids,
             menu_list: menu_data_list,
         },
-    };
-
-    json!(resp)
+    })
 }
 
-
+// 更新角色关联的菜单
 #[post("/update_role_menu", data = "<item>")]
 pub async fn update_role_menu(item: Json<UpdateRoleMenuReq>, _auth: Token) -> Value {
     log::info!("update_role_menu params: {:?}", &item);
@@ -166,24 +177,35 @@ pub async fn update_role_menu(item: Json<UpdateRoleMenuReq>, _auth: Token) -> Va
 
     let mut rb = RB.to_owned();
 
-    SysRoleMenu::delete_by_column(&mut rb, "role_id", &role_id).await.expect("删除角色菜单异常");
+    let role_menu_result = SysRoleMenu::delete_by_column(&mut rb, "role_id", &role_id).await;
 
-    let mut menu_role: Vec<SysRoleMenu> = Vec::new();
+    match role_menu_result {
+        Ok(_) => {
+            let mut menu_role: Vec<SysRoleMenu> = Vec::new();
 
-    for x in &item.menu_ids {
-        let menu_id = x.clone();
-        menu_role.push(SysRoleMenu {
-            id: None,
-            create_time: Some(DateTime::now()),
-            update_time: Some(DateTime::now()),
-            status_id: 1,
-            sort: 1,
-            menu_id,
-            role_id: role_id.clone(),
-        })
+            for id in &item.menu_ids {
+                let menu_id = id.clone();
+                menu_role.push(SysRoleMenu {
+                    id: None,
+                    create_time: Some(DateTime::now()),
+                    update_time: Some(DateTime::now()),
+                    status_id: 1,
+                    sort: 1,
+                    menu_id,
+                    role_id: role_id.clone(),
+                })
+            }
+
+            let result = SysRoleMenu::insert_batch(&mut rb, &menu_role, item.menu_ids.len() as u64).await;
+
+            json!(&handle_result(result))
+        }
+        Err(err) => {
+            json!(BaseResponse {
+                msg: err.to_string(),
+                code: 1,
+                data: Some("None".to_string()),
+            })
+        }
     }
-
-    let result = SysRoleMenu::insert_batch(&mut rb, &menu_role, item.menu_ids.len() as u64).await;
-
-    json!(&handle_result(result))
 }

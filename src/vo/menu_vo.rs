@@ -11,7 +11,6 @@ pub struct MenuListReq {
 pub struct MenuListResp {
     pub msg: String,
     pub code: i32,
-    pub total: u64,
     pub data: Option<Vec<MenuListData>>,
 }
 
