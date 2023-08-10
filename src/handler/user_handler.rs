@@ -14,7 +14,7 @@ use crate::RB;
 use crate::utils::auth::Token;
 use crate::utils::error::WhoUnfollowedError;
 use crate::utils::jwt_util::JWTToken;
-use crate::vo::{BaseResponse, err_result_msg, err_result_page, handle_result, ok_result_data, ok_result_msg, ok_result_page};
+use crate::vo::{err_result_msg, err_result_page, handle_result, ok_result_data, ok_result_msg, ok_result_page};
 use crate::vo::user_vo::*;
 
 // 后台用户登录
@@ -48,10 +48,7 @@ pub async fn login(item: Json<UserLoginReq>) -> Value {
 
                     match JWTToken::new(id, &username, btn_menu).create_token("123") {
                         Ok(token) => {
-                            json!(ok_result_data(UserLoginData {
-                                mobile: item.mobile.to_string(),
-                                token,
-                            }))
+                            json!(ok_result_data(token))
                         }
                         Err(err) => {
                             let er = match err {
@@ -109,12 +106,18 @@ pub async fn query_user_role(item: Json<QueryUserRoleReq>, _auth: Token) -> Valu
     log::info!("query_user_role params: {:?}", item);
 
 
-    let sys_role = SysRole::select_page(&mut RB.clone(), &PageRequest::new(1, 1000)).await;
-
-    let mut sys_role_list: Vec<UserRoleList> = Vec::new();
+    let user_role = SysUserRole::select_by_column(&mut RB.clone(), "user_id", item.user_id).await;
     let mut user_role_ids: Vec<i32> = Vec::new();
 
-    for x in sys_role.unwrap().records {
+    for x in user_role.unwrap() {
+        user_role_ids.push(x.role_id);
+    }
+
+    let sys_role = SysRole::select_all(&mut RB.clone()).await;
+
+    let mut sys_role_list: Vec<UserRoleList> = Vec::new();
+
+    for x in sys_role.unwrap() {
         sys_role_list.push(UserRoleList {
             id: x.id.unwrap(),
             status_id: x.status_id,
@@ -124,20 +127,12 @@ pub async fn query_user_role(item: Json<QueryUserRoleReq>, _auth: Token) -> Valu
             create_time: x.create_time.unwrap().0.to_string(),
             update_time: x.update_time.unwrap().0.to_string(),
         });
-
-        user_role_ids.push(x.id.unwrap_or_default());
     }
 
-    let resp = QueryUserRoleResp {
-        msg: "successful".to_string(),
-        code: 0,
-        data: QueryUserRoleData {
-            sys_role_list,
-            user_role_ids,
-        },
-    };
-
-    json!(&resp)
+    json!(ok_result_data(QueryUserRoleData {
+        sys_role_list,
+        user_role_ids,
+    }))
 }
 
 #[post("/update_user_role", data = "<item>")]
@@ -151,13 +146,13 @@ pub async fn update_user_role(item: Json<UpdateUserRoleReq>, _auth: Token) -> Va
     let len = user_role.role_ids.len();
 
     if user_id == 1 {
-        return json!({"code":1,"msg":"不能修改超级管理员的角色"});
+        return json!(err_result_msg("不能修改超级管理员的角色".to_string()));
     }
 
     let sys_result = SysUserRole::delete_by_column(&mut RB.clone(), "user_id", user_id).await;
 
     if sys_result.is_err() {
-        return json!({"code":1,"msg":"更新用户角色异常"});
+        return json!(err_result_msg("更新用户角色异常".to_string()));
     }
 
     let mut sys_role_user_list: Vec<SysUserRole> = Vec::new();
@@ -192,11 +187,7 @@ pub async fn query_user_menu(auth: Token) -> Value {
             match sys_user {
                 // 用户不存在的情况
                 None => {
-                    json!(BaseResponse {
-                        msg: "用户不存在".to_string(),
-                        code: 1,
-                        data: Some(""),
-                    })
+                    json!(err_result_msg("用户不存在".to_string()))
                 }
                 Some(user) => {
                     let user_role = SysUserRole::select_by_column(&mut RB.clone(), "user_id", user.id).await;
@@ -271,27 +262,18 @@ pub async fn query_user_menu(auth: Token) -> Value {
                         sys_menu.push(menu)
                     }
 
-                    let resp = BaseResponse {
-                        msg: "successful".to_string(),
-                        code: 0,
-                        data: Some(QueryUserMenuData {
+                    json!(ok_result_data(QueryUserMenuData {
                             sys_menu,
                             btn_menu,
                             avatar: "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png".to_string(),
                             name: user.user_name,
-                        }),
-                    };
-                    json!(resp)
+                        }))
                 }
             }
         }
         // 查询用户数据库异常
         Err(err) => {
-            json!(BaseResponse {
-                msg: err.to_string(),
-                code: 1,
-                data: Some(""),
-            })
+            json!(err_result_msg(err.to_string()))
         }
     }
 }

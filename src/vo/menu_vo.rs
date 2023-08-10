@@ -6,13 +6,6 @@ pub struct MenuListReq {
     pub menu_name: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
-#[serde(crate = "rocket::serde")]
-pub struct MenuListResp {
-    pub msg: String,
-    pub code: i32,
-    pub data: Option<Vec<MenuListData>>,
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MenuListData {

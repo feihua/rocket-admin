@@ -11,15 +11,6 @@ pub struct RoleListReq {
     pub status_id: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
-#[serde(crate = "rocket::serde")]
-pub struct RoleListResp {
-    pub msg: String,
-    pub code: i32,
-    pub success: bool,
-    pub total: u64,
-    pub data: Option<Vec<RoleListData>>,
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RoleListData {
