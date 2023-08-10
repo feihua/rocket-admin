@@ -1,12 +1,13 @@
 use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome};
+use serde::Deserialize;
+
 use crate::utils::jwt_util::JWTToken;
-use serde::{Deserialize};
 
 #[derive(Debug, Deserialize)]
-pub struct Token{
+pub struct Token {
     pub id: i32,
-    pub username: String
+    pub username: String,
 }
 
 
@@ -37,7 +38,7 @@ impl<'r> FromRequest<'r> for Token {
                     }
                 }
                 return if flag {
-                    Outcome::Success(Token{ id: (&jwt_token.id).parse().unwrap(), username: jwt_token.username })
+                    Outcome::Success(Token { id: jwt_token.id, username: jwt_token.username })
                 } else {
                     log::error!("{} has no permissions request path: {}, token: {}", &jwt_token.username, path, token);
                     Outcome::Failure((Status::Forbidden, ()))

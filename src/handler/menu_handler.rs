@@ -1,8 +1,8 @@
-use rocket::serde::json::serde_json::json;
-use rocket::serde::json::{Json, Value};
 use rbatis::rbdc::datetime::DateTime;
+use rocket::serde::json::{Json, Value};
+use rocket::serde::json::serde_json::json;
 
-use crate::model::menu::{SysMenu};
+use crate::model::menu::SysMenu;
 use crate::RB;
 use crate::utils::auth::Token;
 use crate::vo::{err_result_msg, err_result_page, handle_result, ok_result_page};
@@ -12,10 +12,10 @@ use crate::vo::menu_vo::{*};
 #[post("/menu_list", data = "<item>")]
 pub async fn menu_list(item: Json<MenuListReq>, _auth: Token) -> Value {
     log::info!("menu_list params: {:?}", &item);
-    let mut rb = RB.to_owned();
+
 
     // 菜单是树形结构不需要分页
-    let result = SysMenu::select_all(&mut rb).await;
+    let result = SysMenu::select_all(&mut RB.clone()).await;
 
     match result {
         Ok(sys_menu_list) => {
@@ -51,7 +51,7 @@ pub async fn menu_list(item: Json<MenuListReq>, _auth: Token) -> Value {
 #[post("/menu_save", data = "<item>")]
 pub async fn menu_save(item: Json<MenuSaveReq>, _auth: Token) -> Value {
     log::info!("menu_save params: {:?}", &item);
-    let mut rb = RB.to_owned();
+
 
     let menu = item.0;
 
@@ -70,7 +70,7 @@ pub async fn menu_save(item: Json<MenuSaveReq>, _auth: Token) -> Value {
         menu_type: menu.menu_type,
     };
 
-    let result = SysMenu::insert(&mut rb, &sys_menu).await;
+    let result = SysMenu::insert(&mut RB.clone(), &sys_menu).await;
 
     json!(&handle_result(result))
 }
@@ -79,7 +79,7 @@ pub async fn menu_save(item: Json<MenuSaveReq>, _auth: Token) -> Value {
 #[post("/menu_update", data = "<item>")]
 pub async fn menu_update(item: Json<MenuUpdateReq>, _auth: Token) -> Value {
     log::info!("menu_update params: {:?}", &item);
-    let mut rb = RB.to_owned();
+
     let menu = item.0;
 
     let sys_menu = SysMenu {
@@ -97,7 +97,7 @@ pub async fn menu_update(item: Json<MenuUpdateReq>, _auth: Token) -> Value {
         menu_type: menu.menu_type,
     };
 
-    let result = SysMenu::update_by_column(&mut rb, &sys_menu, "id").await;
+    let result = SysMenu::update_by_column(&mut RB.clone(), &sys_menu, "id").await;
 
     json!(&handle_result(result))
 }
@@ -106,16 +106,16 @@ pub async fn menu_update(item: Json<MenuUpdateReq>, _auth: Token) -> Value {
 #[post("/menu_delete", data = "<item>")]
 pub async fn menu_delete(item: Json<MenuDeleteReq>, _auth: Token) -> Value {
     log::info!("menu_delete params: {:?}", &item);
-    let mut rb = RB.to_owned();
+
 
     //有下级的时候 不能直接删除
-    let menus = SysMenu::select_by_column(&mut rb, "parent_id", &item.id).await.unwrap_or_default();
+    let menus = SysMenu::select_by_column(&mut RB.clone(), "parent_id", &item.id).await.unwrap_or_default();
 
     if menus.len() > 0 {
-        return  json!(err_result_msg("有下级菜单,不能直接删除".to_string()));
+        return json!(err_result_msg("有下级菜单,不能直接删除".to_string()));
     }
 
-    let result = SysMenu::delete_by_column(&mut rb, "id", &item.id).await;
+    let result = SysMenu::delete_by_column(&mut RB.clone(), "id", &item.id).await;
 
     json!(&handle_result(result))
 }

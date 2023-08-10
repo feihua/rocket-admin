@@ -1,90 +1,115 @@
 use std::collections::HashMap;
+
+use rbatis::rbdc::datetime::DateTime;
+use rbatis::sql::PageRequest;
+use rbs::to_value;
 use rocket::serde::json::{Json, Value};
 use rocket::serde::json::serde_json::json;
-use rbatis::rbdc::datetime::DateTime;
-use rbatis::sql::{PageRequest};
-use rbs::to_value;
-use crate::model::user::{SysUser};
-use crate::model::menu::{SysMenu};
-use crate::model::role::{SysRole};
-use crate::model::user_role::{SysUserRole};
-use crate::utils::error::WhoUnfollowedError;
-use crate::utils::jwt_util::JWTToken;
-use crate::vo::user_vo::*;
-use crate::vo::{BaseResponse, err_result_msg, handle_result, ok_result_msg};
+
+use crate::model::menu::SysMenu;
+use crate::model::role::SysRole;
+use crate::model::user::SysUser;
+use crate::model::user_role::SysUserRole;
 use crate::RB;
 use crate::utils::auth::Token;
+use crate::utils::error::WhoUnfollowedError;
+use crate::utils::jwt_util::JWTToken;
+use crate::vo::{BaseResponse, err_result_msg, err_result_page, handle_result, ok_result_data, ok_result_msg, ok_result_page};
+use crate::vo::user_vo::*;
 
 // 后台用户登录
 #[post("/login", data = "<item>")]
 pub async fn login(item: Json<UserLoginReq>) -> Value {
     log::info!("user login params: {:?}", &item);
-    let mut rb = RB.to_owned();
 
-    let user_result = SysUser::select_by_column(&mut rb, "mobile", &item.mobile).await;
-    log::info!("select_by_column: {:?}",user_result);
+    let user_result = SysUser::select_by_mobile(&mut RB.clone().clone(), &item.mobile).await;
+    log::info!("select_by_mobile: {:?}",user_result);
 
     match user_result {
-        Ok(d) => {
-            if d.len() == 0 {
-                return json!({"code":1,"msg":"用户不存在".to_string()});
-            }
-
-            let user = d.get(0).unwrap().clone();
-            let id = user.id.unwrap().to_string();
-            let username = user.user_name;
-            let password = user.password;
-
-            if password.ne(&item.password) {
-                return json!({"code":1,"msg":"密码不正确".to_string()});
-            }
-
-            let data = SysMenu::select_page(&mut rb, &PageRequest::new(1, 1000)).await;
-
-            let mut btn_menu: Vec<String> = Vec::new();
-
-            for x in data.unwrap().records {
-                btn_menu.push(x.api_url.unwrap_or_default());
-            }
-
-            match JWTToken::new(&id, &username, btn_menu).create_token("123") {
-                Ok(token) => {
-                    let resp = BaseResponse {
-                        msg: "successful".to_string(),
-                        code: 0,
-                        data: Some(UserLoginData {
-                            mobile: item.mobile.to_string(),
-                            token,
-                        }),
-                    };
-
-                    json!(&resp)
+        Ok(u) => {
+            match u {
+                None => {
+                    return json!(err_result_msg("用户不存在".to_string()));
                 }
-                Err(err) => {
-                    let er = match err {
-                        WhoUnfollowedError::JwtTokenError(s) => { s }
-                        _ => "no math error".to_string()
-                    };
+                Some(user) => {
+                    let id = user.id.unwrap();
+                    let username = user.user_name;
+                    let password = user.password;
 
-                    json!({"code":1,"msg":er})
+                    if password.ne(&item.password) {
+                        return json!(err_result_msg("密码不正确".to_string()));
+                    }
+
+                    let btn_menu = query_btn_menu(&id).await;
+
+                    if btn_menu.len() == 0 {
+                        return json!(err_result_msg("用户没有分配角色或者菜单,不能登录".to_string()));
+                    }
+
+                    match JWTToken::new(id, &username, btn_menu).create_token("123") {
+                        Ok(token) => {
+                            json!(ok_result_data(UserLoginData {
+                                mobile: item.mobile.to_string(),
+                                token,
+                            }))
+                        }
+                        Err(err) => {
+                            let er = match err {
+                                WhoUnfollowedError::JwtTokenError(s) => { s }
+                                _ => "no math error".to_string()
+                            };
+
+                            json!(err_result_msg(er))
+                        }
+                    }
                 }
             }
         }
 
         Err(err) => {
             log::info!("select_by_column: {:?}",err);
-            return json!({"code":1,"msg":"查询用户异常".to_string()});
+            return json!(err_result_msg("查询用户异常".to_string()));
         }
     }
 }
 
+async fn query_btn_menu(id: &i32) -> Vec<String> {
+    let user_role = SysUserRole::select_by_column(&mut RB.clone().clone(), "user_id", id.clone()).await;
+    // 判断是不是超级管理员
+    let mut is_admin = false;
+
+    for x in user_role.unwrap() {
+        if x.role_id == 1 {
+            is_admin = true;
+            break;
+        }
+    }
+
+    let mut btn_menu: Vec<String> = Vec::new();
+    if is_admin {
+        let data = SysMenu::select_all(&mut RB.clone().clone()).await;
+
+        for x in data.unwrap() {
+            btn_menu.push(x.api_url.unwrap_or_default());
+        }
+        log::info!("admin login: {:?}",id);
+        btn_menu
+    } else {
+        let btn_menu_map: Vec<HashMap<String, String>> = RB.query_decode("select distinct u.api_url from sys_user_role t left join sys_role usr on t.role_id = usr.id left join sys_role_menu srm on usr.id = srm.role_id left join sys_menu u on srm.menu_id = u.id where t.user_id = ?", vec![to_value!(id)]).await.unwrap();
+        for x in btn_menu_map {
+            btn_menu.push(x.get("api_url").unwrap().to_string());
+        }
+        log::info!("ordinary login: {:?}",id);
+        btn_menu
+    }
+}
 
 #[post("/query_user_role", data = "<item>")]
 pub async fn query_user_role(item: Json<QueryUserRoleReq>, _auth: Token) -> Value {
     log::info!("query_user_role params: {:?}", item);
-    let mut rb = RB.to_owned();
 
-    let sys_role = SysRole::select_page(&mut rb, &PageRequest::new(1, 1000)).await;
+
+    let sys_role = SysRole::select_page(&mut RB.clone(), &PageRequest::new(1, 1000)).await;
 
     let mut sys_role_list: Vec<UserRoleList> = Vec::new();
     let mut user_role_ids: Vec<i32> = Vec::new();
@@ -118,7 +143,7 @@ pub async fn query_user_role(item: Json<QueryUserRoleReq>, _auth: Token) -> Valu
 #[post("/update_user_role", data = "<item>")]
 pub async fn update_user_role(item: Json<UpdateUserRoleReq>, _auth: Token) -> Value {
     log::info!("update_user_role params: {:?}", item);
-    let mut rb = RB.to_owned();
+
 
     let user_role = item.0;
     let user_id = user_role.user_id;
@@ -129,7 +154,7 @@ pub async fn update_user_role(item: Json<UpdateUserRoleReq>, _auth: Token) -> Va
         return json!({"code":1,"msg":"不能修改超级管理员的角色"});
     }
 
-    let sys_result = SysUserRole::delete_by_column(&mut rb, "user_id", user_id).await;
+    let sys_result = SysUserRole::delete_by_column(&mut RB.clone(), "user_id", user_id).await;
 
     if sys_result.is_err() {
         return json!({"code":1,"msg":"更新用户角色异常"});
@@ -149,7 +174,7 @@ pub async fn update_user_role(item: Json<UpdateUserRoleReq>, _auth: Token) -> Va
         })
     }
 
-    let result = SysUserRole::insert_batch(&mut rb, &sys_role_user_list, len as u64).await;
+    let result = SysUserRole::insert_batch(&mut RB.clone(), &sys_role_user_list, len as u64).await;
 
     json!(&handle_result(result))
 }
@@ -157,10 +182,10 @@ pub async fn update_user_role(item: Json<UpdateUserRoleReq>, _auth: Token) -> Va
 #[get("/query_user_menu")]
 pub async fn query_user_menu(auth: Token) -> Value {
     log::info!("query_user_menu params: {:?}", auth);
-    let mut rb = RB.to_owned();
+
 
     //根据id查询用户
-    let result = SysUser::select_by_id(&mut rb, auth.id).await;
+    let result = SysUser::select_by_id(&mut RB.clone(), auth.id).await;
 
     match result {
         Ok(sys_user) => {
@@ -174,7 +199,7 @@ pub async fn query_user_menu(auth: Token) -> Value {
                     })
                 }
                 Some(user) => {
-                    let user_role = SysUserRole::select_by_column(&mut rb, "user_id", user.id).await;
+                    let user_role = SysUserRole::select_by_column(&mut RB.clone(), "user_id", user.id).await;
                     // 判断是不是超级管理员
                     let mut is_admin = false;
 
@@ -188,7 +213,7 @@ pub async fn query_user_menu(auth: Token) -> Value {
                     let sys_menu_list: Vec<SysMenu>;
 
                     if is_admin {
-                        sys_menu_list = SysMenu::select_all(&mut rb).await.unwrap_or_default();
+                        sys_menu_list = SysMenu::select_all(&mut RB.clone()).await.unwrap_or_default();
                     } else {
                         sys_menu_list = RB.query_decode("select u.* from sys_user_role t left join sys_role usr on t.role_id = usr.id left join sys_role_menu srm on usr.id = srm.role_id left join sys_menu u on srm.menu_id = u.id where t.user_id = ? order by u.id asc", vec![to_value!(user.id)]).await.unwrap();
                     }
@@ -217,7 +242,7 @@ pub async fn query_user_menu(auth: Token) -> Value {
                     }
 
                     for menu_id in sys_menu_parent_ids {
-                        let s_menu_result = SysMenu::select_by_id(&mut rb, menu_id).await.unwrap();
+                        let s_menu_result = SysMenu::select_by_id(&mut RB.clone(), menu_id).await.unwrap();
                         match s_menu_result {
                             None => {}
                             Some(y) => {
@@ -275,13 +300,13 @@ pub async fn query_user_menu(auth: Token) -> Value {
 #[post("/user_list", data = "<item>")]
 pub async fn user_list(item: Json<UserListReq>, _auth: Token) -> Value {
     log::info!("query user_list params: {:?}", &item);
-    let mut rb = RB.to_owned();
+
 
     let mobile = item.mobile.as_deref().unwrap_or_default();
     let status_id = item.status_id.as_deref().unwrap_or_default();
 
     let page_req = &PageRequest::new(item.page_no.clone(), item.page_size.clone());
-    let result = SysUser::select_page_by_name(&mut rb, page_req, mobile, status_id).await;
+    let result = SysUser::select_page_by_name(&mut RB.clone(), page_req, mobile, status_id).await;
 
     match result {
         Ok(page) => {
@@ -302,7 +327,7 @@ pub async fn user_list(item: Json<UserListReq>, _auth: Token) -> Value {
                 })
             }
 
-            json!(ok_result_page(role_list, total))
+            json!(ok_result_page(list_data, total))
         }
         Err(err) => {
             json!(err_result_page(err.to_string()))
@@ -317,7 +342,7 @@ pub async fn user_save(item: Json<UserSaveReq>, _auth: Token) -> Value {
 
     let user = item.0;
 
-    let mut rb = RB.to_owned();
+
     let sys_user = SysUser {
         id: None,
         create_time: Some(DateTime::now()),
@@ -330,7 +355,7 @@ pub async fn user_save(item: Json<UserSaveReq>, _auth: Token) -> Value {
         password: "123456".to_string(),//默认密码为123456,暂时不加密
     };
 
-    let result = SysUser::insert(&mut rb, &sys_user).await;
+    let result = SysUser::insert(&mut RB.clone(), &sys_user).await;
 
     json!(&handle_result(result))
 }
@@ -342,8 +367,8 @@ pub async fn user_update(item: Json<UserUpdateReq>, _auth: Token) -> Value {
 
     let user = item.0;
 
-    let mut rb = RB.to_owned();
-    let result = SysUser::select_by_id(&mut rb, user.id.clone()).await.unwrap();
+
+    let result = SysUser::select_by_id(&mut RB.clone(), user.id.clone()).await.unwrap();
 
     match result {
         None => {
@@ -362,7 +387,7 @@ pub async fn user_update(item: Json<UserUpdateReq>, _auth: Token) -> Value {
                 password: s_user.password,
             };
 
-            let result = SysUser::update_by_column(&mut rb, &sys_user, "id").await;
+            let result = SysUser::update_by_column(&mut RB.clone(), &sys_user, "id").await;
 
             json!(&handle_result(result))
         }
@@ -373,12 +398,12 @@ pub async fn user_update(item: Json<UserUpdateReq>, _auth: Token) -> Value {
 #[post("/user_delete", data = "<item>")]
 pub async fn user_delete(item: Json<UserDeleteReq>, _auth: Token) -> Value {
     log::info!("user_delete params: {:?}", &item);
-    let mut rb = RB.to_owned();
+
 
     let ids = item.ids.clone();
     for id in ids {
         if id != 1 {//id为1的用户为系统预留用户,不能删除
-            let _ = SysUser::delete_by_column(&mut rb, "id", &id).await;
+            let _ = SysUser::delete_by_column(&mut RB.clone(), "id", &id).await;
         }
     }
 
@@ -392,9 +417,8 @@ pub async fn update_user_password(item: Json<UpdateUserPwdReq>, _auth: Token) ->
 
     let user_pwd = item.0;
 
-    let mut rb = RB.to_owned();
 
-    let sys_user_result = SysUser::select_by_id(&mut rb, user_pwd.id).await;
+    let sys_user_result = SysUser::select_by_id(&mut RB.clone(), user_pwd.id).await;
 
     match sys_user_result {
         Ok(user_result) => {
@@ -405,7 +429,7 @@ pub async fn update_user_password(item: Json<UpdateUserPwdReq>, _auth: Token) ->
                 Some(mut user) => {
                     if user.password == user_pwd.pwd {
                         user.password = user_pwd.re_pwd;
-                        let result = SysUser::update_by_column(&mut rb, &user, "id").await;
+                        let result = SysUser::update_by_column(&mut RB.clone(), &user, "id").await;
 
                         json!(&handle_result(result))
                     } else {
