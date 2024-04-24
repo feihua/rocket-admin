@@ -1,5 +1,5 @@
 use rbatis::rbdc::datetime::DateTime;
-use rbatis::sql::PageRequest;
+use rbatis::plugin::page::PageRequest;
 use rocket::serde::json::{Json, Value};
 use rocket::serde::json::serde_json::json;
 
