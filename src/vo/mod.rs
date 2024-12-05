@@ -4,9 +4,10 @@ use rbatis::rbdc::db::ExecResult;
 use rbatis::rbdc::Error;
 use serde::Serialize;
 
-pub mod user_vo;
-pub mod role_vo;
-pub mod menu_vo;
+
+pub mod other;
+
+pub mod system;
 
 // 统一返回vo
 #[derive(Serialize, Debug, Clone)]

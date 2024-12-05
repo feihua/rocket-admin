@@ -11,8 +11,7 @@ use rbatis::rbatis::RBatis;
 use rocket::{Config, Request};
 use rocket::serde::json::serde_json::json;
 use rocket::serde::json::Value;
-
-use crate::handler::{menu_handler, role_handler, user_handler};
+use handler::system::{menu_handler, role_handler, user_handler};
 use crate::utils::auth::Token;
 
 pub mod handler;

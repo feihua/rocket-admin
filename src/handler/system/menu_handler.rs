@@ -2,11 +2,11 @@ use rbatis::rbdc::datetime::DateTime;
 use rocket::serde::json::{Json, Value};
 use rocket::serde::json::serde_json::json;
 
-use crate::model::menu::SysMenu;
+use crate::model::system::menu::SysMenu;
 use crate::RB;
 use crate::utils::auth::Token;
 use crate::vo::{err_result_msg, err_result_page, handle_result, ok_result_page};
-use crate::vo::menu_vo::{*};
+use crate::vo::system::menu_vo::{*};
 
 // 查询菜单
 #[post("/menu_list", data = "<item>")]
