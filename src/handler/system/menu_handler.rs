@@ -4,7 +4,7 @@ use rocket::serde::json::serde_json::json;
 
 use crate::model::system::menu::SysMenu;
 use crate::RB;
-use crate::utils::auth::Token;
+use crate::middleware::auth::Token;
 use crate::vo::{err_result_msg, err_result_page, handle_result, ok_result_page};
 use crate::vo::system::menu_vo::{*};
 

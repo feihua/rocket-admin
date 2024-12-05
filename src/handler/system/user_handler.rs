@@ -11,7 +11,7 @@ use crate::model::system::role::SysRole;
 use crate::model::system::user::SysUser;
 use crate::model::system::user_role::SysUserRole;
 use crate::RB;
-use crate::utils::auth::Token;
+use crate::middleware::auth::Token;
 use crate::utils::error::WhoUnfollowedError;
 use crate::utils::jwt_util::JWTToken;
 use crate::vo::{err_result_msg, err_result_page, handle_result, ok_result_data, ok_result_msg, ok_result_page};

@@ -12,12 +12,13 @@ use rocket::{Config, Request};
 use rocket::serde::json::serde_json::json;
 use rocket::serde::json::Value;
 use handler::system::{menu_handler, role_handler, user_handler};
-use crate::utils::auth::Token;
+use middleware::auth::Token;
 
 pub mod handler;
 pub mod model;
 pub mod vo;
 pub mod utils;
+pub mod middleware;
 
 #[get("/ping")]
 fn ping(_auth: Token) -> &'static str {
