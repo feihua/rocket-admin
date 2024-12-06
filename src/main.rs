@@ -19,6 +19,7 @@ pub mod model;
 pub mod vo;
 pub mod utils;
 pub mod middleware;
+pub mod common;
 
 #[get("/ping")]
 fn ping(_auth: Token) -> &'static str {
@@ -49,7 +50,7 @@ lazy_static! {
 async fn main() -> Result<(), rocket::Error> {
     log4rs::init_file("src/config/log4rs.yaml", Default::default()).unwrap();
 
-    RB.init(rbdc_mysql::driver::MysqlDriver {}, "mysql://root:ad879037-c7a4-4063-9236-6bfc35d54b7d@139.159.180.129:3306/rustdb").unwrap();
+    RB.init(rbdc_mysql::driver::MysqlDriver {}, "mysql://root:oMbPi5munxCsBSsiLoPV123@110.41.179.89:3306/salvodb").unwrap();
 
     let config = Config {
         address: Ipv4Addr::new(0, 0, 0, 0).into(),
