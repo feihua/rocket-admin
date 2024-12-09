@@ -1,5 +1,4 @@
 use crate::common::result::BaseResponse;
-use crate::common::result_page::ResponsePage;
 use crate::middleware::auth::Token;
 use crate::model::system::menu::SysMenu;
 use crate::vo::system::menu_vo::*;
@@ -36,10 +35,10 @@ pub async fn menu_list(item: Json<MenuListReq>, _auth: Token) -> Value {
                 })
             }
 
-            ResponsePage::<Vec<MenuListData>>::ok_result(menu_list_all)
+            BaseResponse::<Vec<MenuListData>>::ok_result_page(menu_list_all, 0)
         }
         Err(err) => {
-            ResponsePage::<Vec<MenuListData>>::err_result_page(menu_list_all, err.to_string())
+            BaseResponse::<Vec<MenuListData>>::err_result_page(menu_list_all, err.to_string())
         }
     }
 }

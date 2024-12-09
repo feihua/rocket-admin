@@ -1,5 +1,4 @@
 use crate::common::result::BaseResponse;
-use crate::common::result_page::ResponsePage;
 use crate::middleware::auth::Token;
 use crate::model::system::menu::SysMenu;
 use crate::model::system::role::SysRole;
@@ -39,10 +38,10 @@ pub async fn role_list(item: Json<RoleListReq>, _auth: Token) -> Value {
                     update_time: role.update_time.unwrap().0.to_string(),
                 })
             }
-            ResponsePage::<Vec<RoleListData>>::ok_result_page(role_list_all, total)
+            BaseResponse::<Vec<RoleListData>>::ok_result_page(role_list_all, total)
         }
         Err(err) => {
-            ResponsePage::<Vec<RoleListData>>::err_result_page(role_list_all, err.to_string())
+            BaseResponse::<Vec<RoleListData>>::err_result_page(role_list_all, err.to_string())
         }
     }
 }

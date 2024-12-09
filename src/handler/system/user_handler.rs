@@ -1,7 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::common::result::BaseResponse;
-use crate::common::result_page::ResponsePage;
 use crate::middleware::auth::Token;
 use crate::model::system::menu::SysMenu;
 use crate::model::system::role::SysRole;
@@ -275,9 +274,9 @@ pub async fn user_list(item: Json<UserListReq>, _auth: Token) -> Value {
                 })
             }
 
-            ResponsePage::<Vec<UserListData>>::ok_result_page(list_data, total)
+            BaseResponse::<Vec<UserListData>>::ok_result_page(list_data, total)
         }
-        Err(err) => ResponsePage::<Vec<UserListData>>::err_result_page(list_data, err.to_string()),
+        Err(err) => BaseResponse::<Vec<UserListData>>::err_result_page(list_data, err.to_string()),
     }
 }
 
