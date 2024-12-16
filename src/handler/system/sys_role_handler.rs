@@ -262,9 +262,6 @@ pub async fn update_role_menu(item: Json<UpdateRoleMenuReq>, _auth: Token) -> Va
                 menu_role.push(RoleMenu {
                     id: None,
                     create_time: Some(DateTime::now()),
-                    update_time: Some(DateTime::now()),
-                    status_id: 1,
-                    sort: 1,
                     menu_id,
                     role_id: role_id.clone(),
                 })
