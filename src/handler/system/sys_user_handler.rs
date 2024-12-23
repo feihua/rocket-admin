@@ -20,7 +20,7 @@ use rbs::to_value;
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/addUser", data = "<item>")]
+#[post("/system/user/addUser", data = "<item>")]
 pub async fn add_sys_user(item: Json<AddUserReq>, _auth: Token) -> Value {
     log::info!("add sys_user params: {:?}", &item);
 
@@ -51,7 +51,7 @@ pub async fn add_sys_user(item: Json<AddUserReq>, _auth: Token) -> Value {
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/deleteUser", data = "<item>")]
+#[post("/system/user/deleteUser", data = "<item>")]
 pub async fn delete_sys_user(item: Json<DeleteUserReq>, _auth: Token) -> Value {
     log::info!("delete sys_user params: {:?}", &item);
 
@@ -71,7 +71,7 @@ pub async fn delete_sys_user(item: Json<DeleteUserReq>, _auth: Token) -> Value {
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/updateUser", data = "<item>")]
+#[post("/system/user/updateUser", data = "<item>")]
 pub async fn update_sys_user(item: Json<UpdateUserReq>, _auth: Token) -> Value {
     log::info!("update sys_user params: {:?}", &item);
 
@@ -111,17 +111,24 @@ pub async fn update_sys_user(item: Json<UpdateUserReq>, _auth: Token) -> Value {
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/updateUserStatus", data = "<item>")]
+#[post("/system/user/updateUserStatus", data = "<item>")]
 pub async fn update_sys_user_status(item: Json<UpdateUserStatusReq>, _auth: Token) -> Value {
     log::info!("update sys_user_status params: {:?}", &item);
 
     let req = item.0;
 
-    let param = vec![to_value!(req.status), to_value!(req.ids)];
-    let result = &mut RB
-        .clone()
-        .exec("update sys_user set status = ? where id in ?", param)
-        .await;
+    let update_sql = format!(
+        "update sys_user set status_id = ? where id in ({})",
+        req.ids
+            .iter()
+            .map(|_| "?")
+            .collect::<Vec<&str>>()
+            .join(", ")
+    );
+
+    let mut param = vec![to_value!(req.status)];
+    param.extend(req.ids.iter().map(|&id| to_value!(id)));
+    let result = &mut RB.clone().exec(&update_sql, param).await;
 
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(),
@@ -134,7 +141,7 @@ pub async fn update_sys_user_status(item: Json<UpdateUserStatusReq>, _auth: Toke
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/update_user_password", data = "<item>")]
+#[post("/system/user/update_user_password", data = "<item>")]
 pub async fn update_user_password(item: Json<UpdateUserPwdReq>, _auth: Token) -> Value {
     log::info!("update_user_pwd params: {:?}", &item);
 
@@ -168,7 +175,7 @@ pub async fn update_user_password(item: Json<UpdateUserPwdReq>, _auth: Token) ->
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/queryUserDetail", data = "<item>")]
+#[post("/system/user/queryUserDetail", data = "<item>")]
 pub async fn query_sys_user_detail(item: Json<QueryUserDetailReq>, _auth: Token) -> Value {
     log::info!("query sys_user_detail params: {:?}", &item);
 
@@ -179,12 +186,12 @@ pub async fn query_sys_user_detail(item: Json<QueryUserDetailReq>, _auth: Token)
             let x = d.unwrap();
 
             let sys_user = QueryUserDetailResp {
-                id: x.id.unwrap(),                      //主键
-                mobile: x.mobile,                       //手机
-                user_name: x.user_name,                 //姓名
-                status_id: x.status_id,                 //状态(1:正常，0:禁用)
-                sort: x.sort,                           //排序
-                remark: x.remark.unwrap_or_default(),   //备注
+                id: x.id.unwrap(),                                 //主键
+                mobile: x.mobile,                                  //手机
+                user_name: x.user_name,                            //姓名
+                status_id: x.status_id,                            //状态(1:正常，0:禁用)
+                sort: x.sort,                                      //排序
+                remark: x.remark.unwrap_or_default(),              //备注
                 create_time: x.create_time.unwrap().0.to_string(), //创建时间
                 update_time: x.update_time.unwrap().0.to_string(), //修改时间
             };
@@ -203,14 +210,16 @@ pub async fn query_sys_user_detail(item: Json<QueryUserDetailReq>, _auth: Token)
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/queryUserList", data = "<item>")]
+#[post("/system/user/queryUserList", data = "<item>")]
 pub async fn query_sys_user_list(item: Json<QueryUserListReq>, _auth: Token) -> Value {
     log::info!("query sys_user_list params: {:?}", &item);
 
     let mobile = item.mobile.as_deref().unwrap_or_default();
+    let user_name = item.user_name.as_deref().unwrap_or_default();
     let status_id = item.status_id.unwrap_or_default();
     let page = &PageRequest::new(item.page_no.clone(), item.page_size.clone());
-    let result = User::select_page_by_name(&mut RB.clone(), page, mobile, status_id).await;
+    let result =
+        User::select_page_by_name(&mut RB.clone(), page, mobile, user_name, status_id).await;
 
     let mut sys_user_list_data: Vec<UserListDataResp> = Vec::new();
     match result {
@@ -244,7 +253,7 @@ pub async fn query_sys_user_list(item: Json<QueryUserListReq>, _auth: Token) -> 
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/login", data = "<item>")]
+#[post("/system/user/login", data = "<item>")]
 pub async fn login(item: Json<UserLoginReq>) -> Value {
     log::info!("user login params: {:?}", &item);
 
@@ -323,7 +332,7 @@ async fn query_btn_menu(id: &i64) -> Vec<String> {
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/query_user_role", data = "<item>")]
+#[post("/system/user/queryUserRole", data = "<item>")]
 pub async fn query_user_role(item: Json<QueryUserRoleReq>, _auth: Token) -> Value {
     log::info!("query_user_role params: {:?}", item);
 
@@ -361,7 +370,7 @@ pub async fn query_user_role(item: Json<QueryUserRoleReq>, _auth: Token) -> Valu
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/update_user_role", data = "<item>")]
+#[post("/system/user/updateUserRole", data = "<item>")]
 pub async fn update_user_role(item: Json<UpdateUserRoleReq>, _auth: Token) -> Value {
     log::info!("update_user_role params: {:?}", item);
 

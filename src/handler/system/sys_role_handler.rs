@@ -17,7 +17,7 @@ use rbs::to_value;
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/addRole", data = "<item>")]
+#[post("/system/role/addRole", data = "<item>")]
 pub async fn add_sys_role(item: Json<AddRoleReq>, _auth: Token) -> Value {
     log::info!("add sys_role params: {:?}", &item);
 
@@ -46,7 +46,7 @@ pub async fn add_sys_role(item: Json<AddRoleReq>, _auth: Token) -> Value {
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/deleteRole", data = "<item>")]
+#[post("/system/role/deleteRole", data = "<item>")]
 pub async fn delete_sys_role(item: Json<DeleteRoleReq>, _auth: Token) -> Value {
     log::info!("delete sys_role params: {:?}", &item);
 
@@ -72,7 +72,7 @@ pub async fn delete_sys_role(item: Json<DeleteRoleReq>, _auth: Token) -> Value {
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/updateRole", data = "<item>")]
+#[post("/system/role/updateRole", data = "<item>")]
 pub async fn update_sys_role(item: Json<UpdateRoleReq>, _auth: Token) -> Value {
     log::info!("update sys_role params: {:?}", &item);
 
@@ -101,7 +101,7 @@ pub async fn update_sys_role(item: Json<UpdateRoleReq>, _auth: Token) -> Value {
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/updateRoleStatus", data = "<item>")]
+#[post("/system/role/updateRoleStatus", data = "<item>")]
 pub async fn update_sys_role_status(item: Json<UpdateRoleStatusReq>, _auth: Token) -> Value {
     log::info!("update sys_role_status params: {:?}", &item);
 
@@ -124,7 +124,7 @@ pub async fn update_sys_role_status(item: Json<UpdateRoleStatusReq>, _auth: Toke
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/queryRoleDetail", data = "<item>")]
+#[post("/system/role/queryRoleDetail", data = "<item>")]
 pub async fn query_sys_role_detail(item: Json<QueryRoleDetailReq>, _auth: Token) -> Value {
     log::info!("query sys_role_detail params: {:?}", &item);
 
@@ -135,11 +135,11 @@ pub async fn query_sys_role_detail(item: Json<QueryRoleDetailReq>, _auth: Token)
             let x = d.unwrap();
 
             let sys_role = QueryRoleDetailResp {
-                id: x.id.unwrap(),                      //主键
-                role_name: x.role_name,                 //名称
-                status_id: x.status_id,                 //状态(1:正常，0:禁用)
-                sort: x.sort,                           //排序
-                remark: x.remark,                       //备注
+                id: x.id.unwrap(),                                 //主键
+                role_name: x.role_name,                            //名称
+                status_id: x.status_id,                            //状态(1:正常，0:禁用)
+                sort: x.sort,                                      //排序
+                remark: x.remark,                                  //备注
                 create_time: x.create_time.unwrap().0.to_string(), //创建时间
                 update_time: x.update_time.unwrap().0.to_string(), //修改时间
             };
@@ -158,7 +158,7 @@ pub async fn query_sys_role_detail(item: Json<QueryRoleDetailReq>, _auth: Token)
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/queryRoleList", data = "<item>")]
+#[post("/system/role/queryRoleList", data = "<item>")]
 pub async fn query_sys_role_list(item: Json<QueryRoleListReq>, _auth: Token) -> Value {
     log::info!("query sys_role_list params: {:?}", &item);
 
@@ -199,7 +199,7 @@ pub async fn query_sys_role_list(item: Json<QueryRoleListReq>, _auth: Token) -> 
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/query_role_menu", data = "<item>")]
+#[post("/system/role/queryRoleMenu", data = "<item>")]
 pub async fn query_role_menu(item: Json<QueryRoleMenuReq>, _auth: Token) -> Value {
     log::info!("query_role_menu params: {:?}", &item);
 
@@ -246,7 +246,7 @@ pub async fn query_role_menu(item: Json<QueryRoleMenuReq>, _auth: Token) -> Valu
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/update_role_menu", data = "<item>")]
+#[post("/system/role/updateRoleMenu", data = "<item>")]
 pub async fn update_role_menu(item: Json<UpdateRoleMenuReq>, _auth: Token) -> Value {
     log::info!("update_role_menu params: {:?}", &item);
     let role_id = item.role_id.clone();

@@ -12,7 +12,7 @@ use rbs::to_value;
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/addMenu", data = "<item>")]
+#[post("/system/menu/addMenu", data = "<item>")]
 pub async fn add_sys_menu(item: Json<AddMenuReq>, _auth: Token) -> Value {
     log::info!("add sys_menu params: {:?}", &item);
 
@@ -22,7 +22,7 @@ pub async fn add_sys_menu(item: Json<AddMenuReq>, _auth: Token) -> Value {
         id: None,                 //主键
         menu_name: req.menu_name, //菜单名称
         menu_type: req.menu_type, //菜单类型(1：目录   2：菜单   3：按钮)
-        status_id: req.status_id, //状态(1:正常，0:禁用)
+        status: req.status,       //状态(1:正常，0:禁用)
         sort: req.sort,           //排序
         parent_id: req.parent_id, //父ID
         menu_url: req.menu_url,   //路由路径
@@ -46,7 +46,7 @@ pub async fn add_sys_menu(item: Json<AddMenuReq>, _auth: Token) -> Value {
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/deleteMenu", data = "<item>")]
+#[post("/system/menu/deleteMenu", data = "<item>")]
 pub async fn delete_sys_menu(item: Json<DeleteMenuReq>, _auth: Token) -> Value {
     log::info!("delete sys_menu params: {:?}", &item);
 
@@ -72,7 +72,7 @@ pub async fn delete_sys_menu(item: Json<DeleteMenuReq>, _auth: Token) -> Value {
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/updateMenu", data = "<item>")]
+#[post("/system/menu/updateMenu", data = "<item>")]
 pub async fn update_sys_menu(item: Json<UpdateMenuReq>, _auth: Token) -> Value {
     log::info!("update sys_menu params: {:?}", &item);
 
@@ -82,7 +82,7 @@ pub async fn update_sys_menu(item: Json<UpdateMenuReq>, _auth: Token) -> Value {
         id: Some(req.id),         //主键
         menu_name: req.menu_name, //菜单名称
         menu_type: req.menu_type, //菜单类型(1：目录   2：菜单   3：按钮)
-        status_id: req.status_id, //状态(1:正常，0:禁用)
+        status: req.status,       //状态(1:正常，0:禁用)
         sort: req.sort,           //排序
         parent_id: req.parent_id, //父ID
         menu_url: req.menu_url,   //路由路径
@@ -106,7 +106,7 @@ pub async fn update_sys_menu(item: Json<UpdateMenuReq>, _auth: Token) -> Value {
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/updateMenuStatus", data = "<item>")]
+#[post("/system/menu/updateMenuStatus", data = "<item>")]
 pub async fn update_sys_menu_status(item: Json<UpdateMenuStatusReq>, _auth: Token) -> Value {
     log::info!("update sys_menu_status params: {:?}", &item);
 
@@ -129,7 +129,7 @@ pub async fn update_sys_menu_status(item: Json<UpdateMenuStatusReq>, _auth: Toke
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/queryMenuDetail", data = "<item>")]
+#[post("/system/menu/queryMenuDetail", data = "<item>")]
 pub async fn query_sys_menu_detail(item: Json<QueryMenuDetailReq>, _auth: Token) -> Value {
     log::info!("query sys_menu_detail params: {:?}", &item);
 
@@ -140,18 +140,18 @@ pub async fn query_sys_menu_detail(item: Json<QueryMenuDetailReq>, _auth: Token)
             let x = d.unwrap();
 
             let sys_menu = QueryMenuDetailResp {
-                id: x.id.unwrap(),                          //主键
-                menu_name: x.menu_name,                     //菜单名称
-                menu_type: x.menu_type,                     //菜单类型(1：目录   2：菜单   3：按钮)
-                status_id: x.status_id,                     //状态(1:正常，0:禁用)
-                sort: x.sort,                               //排序
-                parent_id: x.parent_id,                     //父ID
-                menu_url: x.menu_url.unwrap_or_default(),   //路由路径
-                api_url: x.api_url.unwrap_or_default(),     //接口URL
+                id: x.id.unwrap(),                                 //主键
+                menu_name: x.menu_name,                            //菜单名称
+                menu_type: x.menu_type, //菜单类型(1：目录   2：菜单   3：按钮)
+                status: x.status,       //状态(1:正常，0:禁用)
+                sort: x.sort,           //排序
+                parent_id: x.parent_id, //父ID
+                menu_url: x.menu_url.unwrap_or_default(), //路由路径
+                api_url: x.api_url.unwrap_or_default(), //接口URL
                 menu_icon: x.menu_icon.unwrap_or_default(), //菜单图标
-                remark: x.remark.unwrap_or_default(),       //备注
-                create_time: x.create_time.unwrap().0.to_string(),     //创建时间
-                update_time: x.update_time.unwrap().0.to_string(),     //修改时间
+                remark: x.remark.unwrap_or_default(), //备注
+                create_time: x.create_time.unwrap().0.to_string(), //创建时间
+                update_time: x.update_time.unwrap().0.to_string(), //修改时间
             };
 
             BaseResponse::<QueryMenuDetailResp>::ok_result_data(sys_menu)
@@ -168,7 +168,7 @@ pub async fn query_sys_menu_detail(item: Json<QueryMenuDetailReq>, _auth: Token)
  *author：刘飞华
  *date：2024/12/16 14:51:10
  */
-#[post("/queryMenuList", data = "<item>")]
+#[post("/system/menu/queryMenuList", data = "<item>")]
 pub async fn query_sys_menu_list(item: Json<QueryMenuListReq>, _auth: Token) -> Value {
     log::info!("query sys_menu_list params: {:?}", &item);
 
@@ -182,7 +182,7 @@ pub async fn query_sys_menu_list(item: Json<QueryMenuListReq>, _auth: Token) -> 
                     id: x.id.unwrap(),                                 //主键
                     menu_name: x.menu_name,                            //菜单名称
                     menu_type: x.menu_type, //菜单类型(1：目录   2：菜单   3：按钮)
-                    status_id: x.status_id, //状态(1:正常，0:禁用)
+                    status: x.status,       //状态(1:正常，0:禁用)
                     sort: x.sort,           //排序
                     parent_id: x.parent_id, //父ID
                     menu_url: x.menu_url.unwrap_or_default(), //路由路径
