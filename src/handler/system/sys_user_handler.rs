@@ -216,7 +216,8 @@ pub async fn query_sys_user_list(item: Json<QueryUserListReq>, _auth: Token) -> 
 
     let mobile = item.mobile.as_deref().unwrap_or_default();
     let user_name = item.user_name.as_deref().unwrap_or_default();
-    let status_id = item.status_id.unwrap_or_default();
+    let status_id = item.status_id.unwrap_or(2);
+
     let page = &PageRequest::new(item.page_no.clone(), item.page_size.clone());
     let result =
         User::select_page_by_name(&mut RB.clone(), page, mobile, user_name, status_id).await;

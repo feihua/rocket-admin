@@ -19,18 +19,18 @@ pub async fn add_sys_menu(item: Json<AddMenuReq>, _auth: Token) -> Value {
     let req = item.0;
 
     let sys_menu = Menu {
-        id: None,                 //主键
-        menu_name: req.menu_name, //菜单名称
-        menu_type: req.menu_type, //菜单类型(1：目录   2：菜单   3：按钮)
-        status: req.status,       //状态(1:正常，0:禁用)
-        sort: req.sort,           //排序
-        parent_id: req.parent_id, //父ID
-        menu_url: req.menu_url,   //路由路径
-        api_url: req.api_url,     //接口URL
-        menu_icon: req.menu_icon, //菜单图标
-        remark: req.remark,       //备注
-        create_time: None,        //创建时间
-        update_time: None,        //修改时间
+        id: None,                              //主键
+        menu_name: req.menu_name,              //菜单名称
+        menu_type: req.menu_type,              //菜单类型(1：目录   2：菜单   3：按钮)
+        status: req.status,                    //状态(1:正常，0:禁用)
+        sort: req.sort,                        //排序
+        parent_id: req.parent_id.unwrap_or(0), //父ID
+        menu_url: req.menu_url,                //路由路径
+        api_url: req.api_url,                  //接口URL
+        menu_icon: req.menu_icon,              //菜单图标
+        remark: req.remark,                    //备注
+        create_time: None,                     //创建时间
+        update_time: None,                     //修改时间
     };
 
     let result = Menu::insert(&mut RB.clone(), &sys_menu).await;

@@ -163,7 +163,7 @@ pub async fn query_sys_role_list(item: Json<QueryRoleListReq>, _auth: Token) -> 
     log::info!("query sys_role_list params: {:?}", &item);
 
     let role_name = item.role_name.as_deref().unwrap_or_default();
-    let status_id = item.status_id.unwrap_or_default();
+    let status_id = item.status_id.unwrap_or(2);
     let page = &PageRequest::new(item.page_no.clone(), item.page_size.clone());
     let result = Role::select_page_by_name(&mut RB.clone(), page, role_name, status_id).await;
 
