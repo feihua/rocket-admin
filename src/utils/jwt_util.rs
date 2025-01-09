@@ -4,9 +4,8 @@ use jsonwebtoken::{
     decode, encode, errors::ErrorKind, Algorithm, DecodingKey, EncodingKey, Header, Validation,
 };
 use serde::{Deserialize, Serialize};
-
-use crate::utils::error::WhoUnfollowedError;
-use crate::utils::error::WhoUnfollowedError::JwtTokenError;
+use crate::common::error::WhoUnfollowedError;
+use crate::common::error::WhoUnfollowedError::JwtTokenError;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JWTToken {
@@ -94,9 +93,9 @@ mod tests {
     #[test]
     fn test_jwt() {
         let jwt = JWTToken::new(1, "koobe", vec![]);
-        let res = jwt.create_token("123")?;
+        let res = jwt.create_token("123");
         println!("{:?}", res);
-        let token = JWTToken::verify("123", &res);
+        let token = JWTToken::verify("123", &res.unwrap());
         println!("{:?}", token)
     }
 }

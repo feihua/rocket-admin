@@ -6,11 +6,12 @@ use serde::{Deserialize, Serialize};
 /*
 添加菜单信息请求参数
 */
-#[derive(Debug, Deserialize)]
-#[serde(crate = "rocket::serde")]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AddMenuReq {
     pub menu_name: String,         //菜单名称
     pub menu_type: i8,             //菜单类型(1：目录   2：菜单   3：按钮)
+    pub visible: i8,               //菜单状态（0:隐藏, 显示:1）
     pub status: i8,                //状态(1:正常，0:禁用)
     pub sort: i32,                 //排序
     pub parent_id: Option<i64>,    //父ID
@@ -23,8 +24,7 @@ pub struct AddMenuReq {
 /*
 删除菜单信息请求参数
 */
-#[derive(Debug, Deserialize)]
-#[serde(crate = "rocket::serde")]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DeleteMenuReq {
     pub id: i64,
 }
@@ -32,12 +32,13 @@ pub struct DeleteMenuReq {
 /*
 更新菜单信息请求参数
 */
-#[derive(Debug, Deserialize)]
-#[serde(crate = "rocket::serde")]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateMenuReq {
     pub id: i64,                   //主键
     pub menu_name: String,         //菜单名称
     pub menu_type: i8,             //菜单类型(1：目录   2：菜单   3：按钮)
+    pub visible: i8,               //菜单状态（0:隐藏, 显示:1）
     pub status: i8,                //状态(1:正常，0:禁用)
     pub sort: i32,                 //排序
     pub parent_id: i64,            //父ID
@@ -50,8 +51,7 @@ pub struct UpdateMenuReq {
 /*
 更新菜单信息状态请求参数
 */
-#[derive(Debug, Deserialize)]
-#[serde(crate = "rocket::serde")]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateMenuStatusReq {
     pub ids: Vec<i64>,
     pub status: i8,
@@ -60,8 +60,7 @@ pub struct UpdateMenuStatusReq {
 /*
 查询菜单信息详情请求参数
 */
-#[derive(Debug, Deserialize)]
-#[serde(crate = "rocket::serde")]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct QueryMenuDetailReq {
     pub id: i64,
 }
@@ -69,12 +68,13 @@ pub struct QueryMenuDetailReq {
 /*
 查询菜单信息详情响应参数
 */
-#[derive(Debug, Serialize)]
-#[serde(crate = "rocket::serde")]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct QueryMenuDetailResp {
     pub id: i64,             //主键
     pub menu_name: String,   //菜单名称
     pub menu_type: i8,       //菜单类型(1：目录   2：菜单   3：按钮)
+    pub visible: i8,         //菜单状态（0:隐藏, 显示:1）
     pub status: i8,          //状态(1:正常，0:禁用)
     pub sort: i32,           //排序
     pub parent_id: i64,      //父ID
@@ -92,6 +92,7 @@ impl QueryMenuDetailResp {
             id: 0,
             menu_name: "".to_string(),
             menu_type: 0,
+            visible: 0,
             status: 0,
             sort: 0,
             parent_id: 0,
@@ -108,8 +109,8 @@ impl QueryMenuDetailResp {
 /*
 查询菜单信息列表请求参数
 */
-#[derive(Debug, Deserialize)]
-#[serde(crate = "rocket::serde")]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct QueryMenuListReq {
     pub menu_name: Option<String>, //菜单名称
 }
@@ -117,12 +118,13 @@ pub struct QueryMenuListReq {
 /*
 查询菜单信息列表响应参数
 */
-#[derive(Debug, Serialize)]
-#[serde(crate = "rocket::serde")]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct MenuListDataResp {
     pub id: i64,             //主键
     pub menu_name: String,   //菜单名称
     pub menu_type: i8,       //菜单类型(1：目录   2：菜单   3：按钮)
+    pub visible: i8,         //菜单状态（0:隐藏, 显示:1）
     pub status: i8,          //状态(1:正常，0:禁用)
     pub sort: i32,           //排序
     pub parent_id: i64,      //父ID
@@ -136,6 +138,23 @@ pub struct MenuListDataResp {
 
 impl MenuListDataResp {
     pub fn new() -> Vec<MenuListDataResp> {
+        Vec::new()
+    }
+}
+
+/*
+查询菜单信息列表响应参数
+*/
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MenuListSimpleDataResp {
+    pub id: i64,           //主键
+    pub menu_name: String, //菜单名称
+    pub parent_id: i64,    //父ID
+}
+
+impl MenuListSimpleDataResp {
+    pub fn new() -> Vec<MenuListSimpleDataResp> {
         Vec::new()
     }
 }
