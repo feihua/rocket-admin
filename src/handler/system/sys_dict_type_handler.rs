@@ -1,14 +1,14 @@
-use rocket::serde::json::{Json, Value};
 use rbatis::plugin::page::PageRequest;
+use rocket::serde::json::{Json, Value};
 
-use crate::RB;
-use crate::middleware::auth::Token;
-use rbs::to_value;
 use crate::common::result::BaseResponse;
+use crate::middleware::auth::Token;
 use crate::model::system::sys_dict_data_model::{count_dict_data_by_type, update_dict_data_type};
-use crate::model::system::sys_dict_type_model::{DictType};
+use crate::model::system::sys_dict_type_model::DictType;
 use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_dict_type_vo::*;
+use crate::RB;
+use rbs::to_value;
 
 /*
  *添加字典类型表
@@ -34,13 +34,13 @@ pub async fn add_sys_dict_type(item: Json<AddDictTypeReq>, _auth: Token) -> Valu
     }
 
     let sys_dict_type = DictType {
-        dict_id: None,                           //字典主键
+        dict_id: None,                          //字典主键
         dict_name: req.dict_name,               //字典名称
         dict_type: req.dict_type,               //字典类型
         status: req.status,                     //状态（0：停用，1:正常）
         remark: req.remark.unwrap_or_default(), //备注
-        create_time: None,                       //创建时间
-        update_time: None,                       //修改时间
+        create_time: None,                      //创建时间
+        update_time: None,                      //修改时间
     };
 
     let result = DictType::insert(rb, &sys_dict_type).await;
@@ -105,6 +105,18 @@ pub async fn update_sys_dict_type(item: Json<UpdateDictTypeReq>, _auth: Token) -
     let rb = &mut RB.clone();
     let req = item.0;
 
+    let dict_by_id = DictType::select_by_id(rb, &req.dict_id).await;
+    match dict_by_id {
+        Ok(p) => {
+            if p.is_none() {
+                return BaseResponse::<String>::err_result_msg(
+                    "更新字典失败,字典类型不存在".to_string(),
+                );
+            }
+        }
+        Err(err) => return BaseResponse::<String>::err_result_msg(err.to_string()),
+    };
+
     let res_by_type = DictType::select_by_dict_type(rb, &req.dict_type).await;
     match res_by_type {
         Ok(r) => {
@@ -126,8 +138,8 @@ pub async fn update_sys_dict_type(item: Json<UpdateDictTypeReq>, _auth: Token) -
         dict_type: req.dict_type,               //字典类型
         status: req.status,                     //状态（0：停用，1:正常）
         remark: req.remark.unwrap_or_default(), //备注
-        create_time: None,                       //创建时间
-        update_time: None,                       //修改时间
+        create_time: None,                      //创建时间
+        update_time: None,                      //修改时间
     };
 
     let result = DictType::update_by_column(rb, &sys_dict_type, "dict_id").await;
@@ -144,7 +156,10 @@ pub async fn update_sys_dict_type(item: Json<UpdateDictTypeReq>, _auth: Token) -
  *date：2025/01/09 16:16:41
  */
 #[post("/system/dictType/updateDictTypeStatus", data = "<item>")]
-pub async fn update_sys_dict_type_status(item: Json<UpdateDictTypeStatusReq>, _auth: Token) -> Value {
+pub async fn update_sys_dict_type_status(
+    item: Json<UpdateDictTypeStatusReq>,
+    _auth: Token,
+) -> Value {
     log::info!("update sys_dict_type_status params: {:?}", &item);
     let rb = &mut RB.clone();
     let req = item.0;
@@ -201,12 +216,12 @@ pub async fn query_sys_dict_type_detail(item: Json<QueryDictTypeDetailReq>, _aut
 
             BaseResponse::<QueryDictTypeDetailResp>::ok_result_data(sys_dict_type)
         }
-        Err(err) => {
-            BaseResponse::<QueryDictTypeDetailResp>::err_result_data(QueryDictTypeDetailResp::new(), err.to_string())
-        }
+        Err(err) => BaseResponse::<QueryDictTypeDetailResp>::err_result_data(
+            QueryDictTypeDetailResp::new(),
+            err.to_string(),
+        ),
     }
 }
-
 
 /*
  *查询字典类型表列表
@@ -247,4 +262,3 @@ pub async fn query_sys_dict_type_list(item: Json<QueryDictTypeListReq>, _auth: T
         Err(err) => BaseResponse::err_result_page(DictTypeListDataResp::new(), err.to_string()),
     }
 }
-

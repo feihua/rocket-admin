@@ -1,13 +1,13 @@
-use rocket::serde::json::{Json, Value};
 use rbatis::plugin::page::PageRequest;
+use rocket::serde::json::{Json, Value};
 
-use crate::RB;
-use crate::middleware::auth::Token;
-use rbs::to_value;
 use crate::common::result::BaseResponse;
-use crate::model::system::sys_notice_model::{Notice};
+use crate::middleware::auth::Token;
+use crate::model::system::sys_notice_model::Notice;
 use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_notice_vo::*;
+use crate::RB;
+use rbs::to_value;
 
 /*
  *添加通知公告表
@@ -31,14 +31,14 @@ pub async fn add_sys_notice(item: Json<AddNoticeReq>, _auth: Token) -> Value {
     }
 
     let sys_notice = Notice {
-        id: None,                                //公告ID
+        id: None,                               //公告ID
         notice_title: req.notice_title,         //公告标题
         notice_type: req.notice_type,           //公告类型（1:通知,2:公告）
         notice_content: req.notice_content,     //公告内容
         status: req.status,                     //公告状态（0:关闭,1:正常 ）
         remark: req.remark.unwrap_or_default(), //备注
-        create_time: None,                       //创建时间
-        update_time: None,                       //修改时间
+        create_time: None,                      //创建时间
+        update_time: None,                      //修改时间
     };
 
     let result = Notice::insert(rb, &sys_notice).await;
@@ -78,6 +78,17 @@ pub async fn update_sys_notice(item: Json<UpdateNoticeReq>, _auth: Token) -> Val
     let rb = &mut RB.clone();
     let req = item.0;
 
+    let result = Notice::select_by_id(rb, &req.id).await;
+
+    match result {
+        Ok(d) => {
+            if d.is_none() {
+                return BaseResponse::<String>::err_result_msg("通知公告表不存在".to_string());
+            }
+        }
+        Err(err) => return BaseResponse::<String>::err_result_msg(err.to_string()),
+    };
+
     let res = Notice::select_by_title(rb, &req.notice_title).await;
 
     match res {
@@ -96,8 +107,8 @@ pub async fn update_sys_notice(item: Json<UpdateNoticeReq>, _auth: Token) -> Val
         notice_content: req.notice_content,     //公告内容
         status: req.status,                     //公告状态（0:关闭,1:正常 ）
         remark: req.remark.unwrap_or_default(), //备注
-        create_time: None,                       //创建时间
-        update_time: None,                       //修改时间
+        create_time: None,                      //创建时间
+        update_time: None,                      //修改时间
     };
 
     let result = Notice::update_by_column(rb, &sys_notice, "id").await;
@@ -172,12 +183,12 @@ pub async fn query_sys_notice_detail(item: Json<QueryNoticeDetailReq>, _auth: To
 
             BaseResponse::<QueryNoticeDetailResp>::ok_result_data(sys_notice)
         }
-        Err(err) => {
-            BaseResponse::<QueryNoticeDetailResp>::err_result_data(QueryNoticeDetailResp::new(), err.to_string())
-        }
+        Err(err) => BaseResponse::<QueryNoticeDetailResp>::err_result_data(
+            QueryNoticeDetailResp::new(),
+            err.to_string(),
+        ),
     }
 }
-
 
 /*
  *查询通知公告表列表
@@ -219,4 +230,3 @@ pub async fn query_sys_notice_list(item: Json<QueryNoticeListReq>, _auth: Token)
         Err(err) => BaseResponse::err_result_page(NoticeListDataResp::new(), err.to_string()),
     }
 }
-

@@ -1,13 +1,13 @@
-use rocket::serde::json::{Json, Value};
 use rbatis::plugin::page::PageRequest;
+use rocket::serde::json::{Json, Value};
 
-use crate::RB;
-use crate::middleware::auth::Token;
-use rbs::to_value;
 use crate::common::result::BaseResponse;
-use crate::model::system::sys_dict_data_model::{DictData};
+use crate::middleware::auth::Token;
+use crate::model::system::sys_dict_data_model::DictData;
 use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_dict_data_vo::*;
+use crate::RB;
+use rbs::to_value;
 
 /*
  *添加字典数据表
@@ -47,7 +47,7 @@ pub async fn add_sys_dict_data(item: Json<AddDictDataReq>, _auth: Token) -> Valu
     }
 
     let sys_dict_data = DictData {
-        dict_code: None,                         //字典编码
+        dict_code: None,                        //字典编码
         dict_sort: req.dict_sort,               //字典排序
         dict_label: req.dict_label,             //字典标签
         dict_value: req.dict_value,             //字典键值
@@ -57,8 +57,8 @@ pub async fn add_sys_dict_data(item: Json<AddDictDataReq>, _auth: Token) -> Valu
         is_default: req.is_default,             //是否默认（Y是 N否）
         status: req.status,                     //状态（0：停用，1:正常）
         remark: req.remark.unwrap_or_default(), //备注
-        create_time: None,                       //创建时间
-        update_time: None,                       //修改时间
+        create_time: None,                      //创建时间
+        update_time: None,                      //修改时间
     };
 
     let result = DictData::insert(rb, &sys_dict_data).await;
@@ -98,6 +98,18 @@ pub async fn update_sys_dict_data(item: Json<UpdateDictDataReq>, _auth: Token) -
     let rb = &mut RB.clone();
     let req = item.0;
 
+    let result = DictData::select_by_id(rb, &req.dict_code).await;
+    match result {
+        Ok(r) => {
+            if r.is_none() {
+                return BaseResponse::<String>::err_result_msg(
+                    "更新字典数据失败,字典数据不存在".to_string(),
+                );
+            }
+        }
+        Err(err) => return BaseResponse::<String>::err_result_msg(err.to_string()),
+    }
+
     let res_by_dict_label =
         DictData::select_by_dict_label(rb, &req.dict_type, &req.dict_label).await;
     match res_by_dict_label {
@@ -135,8 +147,8 @@ pub async fn update_sys_dict_data(item: Json<UpdateDictDataReq>, _auth: Token) -
         is_default: req.is_default,             //是否默认（Y是 N否）
         status: req.status,                     //状态（0：停用，1:正常）
         remark: req.remark.unwrap_or_default(), //备注
-        create_time: None,                       //创建时间
-        update_time: None,                       //修改时间
+        create_time: None,                      //创建时间
+        update_time: None,                      //修改时间
     };
 
     let result = DictData::update_by_column(rb, &sys_dict_data, "dict_code").await;
@@ -153,7 +165,10 @@ pub async fn update_sys_dict_data(item: Json<UpdateDictDataReq>, _auth: Token) -
  *date：2025/01/09 16:16:41
  */
 #[post("/system/dictData/updateDictDataStatus", data = "<item>")]
-pub async fn update_sys_dict_data_status(item: Json<UpdateDictDataStatusReq>, _auth: Token) -> Value {
+pub async fn update_sys_dict_data_status(
+    item: Json<UpdateDictDataStatusReq>,
+    _auth: Token,
+) -> Value {
     log::info!("update sys_dict_data_status params: {:?}", &item);
     let rb = &mut RB.clone();
     let req = item.0;
@@ -215,12 +230,12 @@ pub async fn query_sys_dict_data_detail(item: Json<QueryDictDataDetailReq>, _aut
 
             BaseResponse::<QueryDictDataDetailResp>::ok_result_data(sys_dict_data)
         }
-        Err(err) => {
-            BaseResponse::<QueryDictDataDetailResp>::err_result_data(QueryDictDataDetailResp::new(), err.to_string())
-        }
+        Err(err) => BaseResponse::<QueryDictDataDetailResp>::err_result_data(
+            QueryDictDataDetailResp::new(),
+            err.to_string(),
+        ),
     }
 }
-
 
 /*
  *查询字典数据表列表
@@ -266,4 +281,3 @@ pub async fn query_sys_dict_data_list(item: Json<QueryDictDataListReq>, _auth: T
         Err(err) => BaseResponse::err_result_page(DictDataListDataResp::new(), err.to_string()),
     }
 }
-
