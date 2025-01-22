@@ -1,6 +1,9 @@
 use crate::common::result::BaseResponse;
 use crate::middleware::auth::Token;
-use crate::model::system::sys_dept_model::{check_dept_exist_user, select_children_dept_by_id, select_dept_count, select_normal_children_dept_by_id, Dept};
+use crate::model::system::sys_dept_model::{
+    check_dept_exist_user, select_children_dept_by_id, select_dept_count,
+    select_normal_children_dept_by_id, Dept,
+};
 use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_dept_vo::*;
 use crate::RB;
@@ -50,18 +53,18 @@ pub async fn add_sys_dept(item: Json<AddDeptReq>, _auth: Token) -> Value {
     };
 
     let sys_dept = Dept {
-        id: None,                  //部门id
+        id: None,                 //部门id
         parent_id: req.parent_id, //父部门id
-        ancestors,                 //祖级列表
+        ancestors,                //祖级列表
         dept_name: req.dept_name, //部门名称
         sort: req.sort,           //显示顺序
         leader: req.leader,       //负责人
         phone: req.phone,         //联系电话
         email: req.email,         //邮箱
         status: req.status,       //部状态（0：停用，1:正常）
-        del_flag: None,            //删除标志（0代表删除 1代表存在）
-        create_time: None,         //创建时间
-        update_time: None,         //修改时间
+        del_flag: None,           //删除标志（0代表删除 1代表存在）
+        create_time: None,        //创建时间
+        update_time: None,        //修改时间
     };
 
     let result = Dept::insert(rb, &sys_dept).await;
@@ -88,9 +91,7 @@ pub async fn delete_sys_dept(item: Json<DeleteDeptReq>, _auth: Token) -> Value {
         return BaseResponse::<String>::err_result_msg("存在下级部门,不允许删除".to_string());
     }
 
-    let res1 = check_dept_exist_user(rb, &req.id)
-        .await
-        .unwrap_or_default();
+    let res1 = check_dept_exist_user(rb, &req.id).await.unwrap_or_default();
     if res1 > 0 {
         return BaseResponse::<String>::err_result_msg("部门存在用户,不允许删除".to_string());
     }
@@ -182,15 +183,15 @@ pub async fn update_sys_dept(item: Json<UpdateDeptReq>, _auth: Token) -> Value {
     }
 
     let sys_dept = Dept {
-        id: Some(req.id),            //部门id
-        parent_id: req.parent_id,    //父部门id
+        id: Some(req.id),             //部门id
+        parent_id: req.parent_id,     //父部门id
         ancestors: ancestors.clone(), //祖级列表
-        dept_name: req.dept_name,    //部门名称
-        sort: req.sort,              //显示顺序
-        leader: req.leader,          //负责人
-        phone: req.phone,            //联系电话
-        email: req.email,            //邮箱
-        status: req.status,          //部状态（0：停用，1:正常）
+        dept_name: req.dept_name,     //部门名称
+        sort: req.sort,               //显示顺序
+        leader: req.leader,           //负责人
+        phone: req.phone,             //联系电话
+        email: req.email,             //邮箱
+        status: req.status,           //部状态（0：停用，1:正常）
         del_flag: None,               //删除标志（0代表删除 1代表存在）
         create_time: None,            //创建时间
         update_time: None,            //修改时间
@@ -233,6 +234,31 @@ pub async fn update_sys_dept_status(item: Json<UpdateDeptStatusReq>, _auth: Toke
     log::info!("update sys_dept_status params: {:?}", &item);
     let rb = &mut RB.clone();
     let req = item.0;
+
+    if req.status == 1 {
+        for id in req.ids.clone() {
+            let result = Dept::select_by_id(rb, &id).await.unwrap_or_default();
+            if result.is_some() {
+                let ancestors = result.unwrap().ancestors;
+                let ids = ancestors.split(",").map(|s| s.i64()).collect::<Vec<i64>>();
+
+                let update_sql = format!(
+                    "update sys_dept set status = ? where id in ({})",
+                    ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
+                );
+
+                let mut param = vec![to_value!(req.status)];
+                param.extend(ids.iter().map(|&id| to_value!(id)));
+                let res_dept = rb.exec(&update_sql, param).await;
+
+                if res_dept.is_err() {
+                    return BaseResponse::<String>::err_result_msg(
+                        "更新上级部门状态异常".to_string(),
+                    );
+                }
+            }
+        }
+    }
 
     let update_sql = format!(
         "update sys_dept set status = ? where id in ({})",
@@ -291,12 +317,12 @@ pub async fn query_sys_dept_detail(item: Json<QueryDeptDetailReq>, _auth: Token)
 
             BaseResponse::<QueryDeptDetailResp>::ok_result_data(sys_dept)
         }
-        Err(err) => {
-            BaseResponse::<QueryDeptDetailResp>::err_result_data(QueryDeptDetailResp::new(), err.to_string())
-        }
+        Err(err) => BaseResponse::<QueryDeptDetailResp>::err_result_data(
+            QueryDeptDetailResp::new(),
+            err.to_string(),
+        ),
     }
 }
-
 
 /*
  *查询部门表列表
@@ -338,4 +364,3 @@ pub async fn query_sys_dept_list(item: Json<QueryDeptListReq>, _auth: Token) -> 
         Err(err) => BaseResponse::err_result_data(DeptListDataResp::new(), err.to_string()),
     }
 }
-
