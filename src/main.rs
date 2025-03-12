@@ -5,18 +5,19 @@ extern crate rbatis;
 #[macro_use]
 extern crate rocket;
 
-use std::net::Ipv4Addr;
-
 use crate::handler::system::{
     sys_dept_handler, sys_dict_data_handler, sys_dict_type_handler, sys_login_log_handler,
     sys_menu_handler, sys_notice_handler, sys_operate_log_handler, sys_post_handler,
     sys_role_handler, sys_user_handler,
 };
+use dotenvy::dotenv;
 use middleware::auth::Token;
 use rbatis::rbatis::RBatis;
 use rocket::serde::json::serde_json::json;
 use rocket::serde::json::Value;
 use rocket::{Config, Request};
+use std::env;
+use std::net::Ipv4Addr;
 
 pub mod common;
 pub mod handler;
@@ -53,16 +54,15 @@ lazy_static! {
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
     log4rs::init_file("src/config/log4rs.yaml", Default::default()).unwrap();
-
-    RB.init(
-        rbdc_mysql::driver::MysqlDriver {},
-        "mysql://root:123456@127.0.0.1:3306/rustdb",
-    )
-    .unwrap();
+    dotenv().ok();
+    let server_port = env::var("SERVER_PORT").expect("SERVER_PORT is not set in .env file");
+    let db_url = env::var("DATABASE_URL").expect("DATABASE_URL is not set in .env file");
+    RB.init(rbdc_mysql::driver::MysqlDriver {}, db_url.as_str())
+        .unwrap();
 
     let config = Config {
         address: Ipv4Addr::new(0, 0, 0, 0).into(),
-        port: 8099,
+        port: server_port.parse::<u16>().unwrap(),
         ..Config::debug_default()
     };
 
