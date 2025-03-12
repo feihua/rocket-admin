@@ -16,6 +16,7 @@ rbs = { version = "4.5"}
 rbatis = { version = "4.5"}
 #rbatis = { version = "4.0",features = ["debug_mode"]}
 rbdc-mysql={version="4.5"}
+dotenvy = "0.15.7"
 
 jsonwebtoken = "9.3.0"
 
