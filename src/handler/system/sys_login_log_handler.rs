@@ -1,4 +1,5 @@
 use rbatis::plugin::page::PageRequest;
+use rbs::value;
 use rocket::serde::json::{Json, Value};
 
 use crate::common::result::BaseResponse;
@@ -18,7 +19,7 @@ pub async fn delete_sys_login_log(item: Json<DeleteLoginLogReq>, _auth: Token) -
     log::info!("delete sys_login_log params: {:?}", &item);
     let rb = &mut RB.clone();
 
-    let result = LoginLog::delete_in_column(rb, "id", &item.ids).await;
+    let result = LoginLog::delete_by_map(rb, value! {"id": &item.ids}).await;
 
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(),
@@ -86,12 +87,12 @@ pub async fn query_sys_login_log_detail(item: Json<QueryLoginLogDetailReq>, _aut
 
             BaseResponse::<QueryLoginLogDetailResp>::ok_result_data(sys_login_log)
         }
-        Err(err) => {
-            BaseResponse::<QueryLoginLogDetailResp>::err_result_data(QueryLoginLogDetailResp::new(), err.to_string())
-        }
+        Err(err) => BaseResponse::<QueryLoginLogDetailResp>::err_result_data(
+            QueryLoginLogDetailResp::new(),
+            err.to_string(),
+        ),
     }
 }
-
 
 /*
  *查询系统访问记录列表
@@ -143,4 +144,3 @@ pub async fn query_sys_login_log_list(item: Json<QueryLoginLogListReq>, _auth: T
         Err(err) => BaseResponse::err_result_page(LoginLogListDataResp::new(), err.to_string()),
     }
 }
-

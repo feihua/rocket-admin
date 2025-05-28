@@ -18,7 +18,7 @@ use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_role_vo::*;
 use crate::vo::system::sys_user_vo::UserListDataResp;
 use crate::RB;
-use rbs::to_value;
+use rbs::value;
 /*
  *添加角色信息
  *author：刘飞华
@@ -108,20 +108,20 @@ pub async fn delete_sys_role(item: Json<DeleteRoleReq>, _auth: Token) -> Value {
         }
     }
 
-    let delete_role_menu_result = RoleMenu::delete_in_column(rb, "role_id", &item.ids).await;
+    let delete_role_menu_result = RoleMenu::delete_by_map(rb, value! {"role_id": &item.ids}).await;
 
     match delete_role_menu_result {
         Err(err) => return BaseResponse::<String>::err_result_msg(err.to_string()),
         _ => {}
     }
-    let delete_role_dept_result = RoleDept::delete_in_column(rb, "role_id", &item.ids).await;
+    let delete_role_dept_result = RoleDept::delete_by_map(rb, value! {"role_id": &item.ids}).await;
 
     match delete_role_dept_result {
         Err(err) => return BaseResponse::<String>::err_result_msg(err.to_string()),
         _ => {}
     }
 
-    let delete_role_result = Role::delete_in_column(rb, "id", &item.ids).await;
+    let delete_role_result = Role::delete_by_map(rb, value! {"id": &item.ids}).await;
 
     match delete_role_result {
         Ok(_u) => BaseResponse::<String>::ok_result(),
@@ -187,7 +187,7 @@ pub async fn update_sys_role(item: Json<UpdateRoleReq>, _auth: Token) -> Value {
         update_time: None,          //修改时间
     };
 
-    let result = Role::update_by_column(rb, &sys_role, "id").await;
+    let result = Role::update_by_map(rb, &sys_role, value! {"id": &req.id}).await;
 
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(),
@@ -215,8 +215,8 @@ pub async fn update_sys_role_status(item: Json<UpdateRoleStatusReq>, _auth: Toke
             .join(", ")
     );
 
-    let mut param = vec![to_value!(req.status)];
-    param.extend(req.ids.iter().map(|&id| to_value!(id)));
+    let mut param = vec![value!(req.status)];
+    param.extend(req.ids.iter().map(|&id| value!(id)));
     let result = rb.exec(&update_sql, param).await;
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(),
@@ -373,7 +373,7 @@ pub async fn update_role_menu(item: Json<UpdateRoleMenuReq>, _auth: Token) -> Va
 
     let rb = &mut RB.clone();
 
-    let role_menu_result = RoleMenu::delete_by_column(rb, "role_id", &role_id).await;
+    let role_menu_result = RoleMenu::delete_by_map(rb, value! {"role_id": &role_id}).await;
 
     match role_menu_result {
         Ok(_) => {
@@ -549,8 +549,8 @@ pub async fn batch_cancel_auth_user(item: Json<CancelAuthUserAllReq>, _auth: Tok
             .join(", ")
     );
 
-    let mut param = vec![to_value!(item.role_id)];
-    param.extend(item.user_ids.iter().map(|&id| to_value!(id)));
+    let mut param = vec![value!(item.role_id)];
+    param.extend(item.user_ids.iter().map(|&id| value!(id)));
     let result = rb.exec(&update_sql, param).await;
 
     match result {

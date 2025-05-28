@@ -8,7 +8,7 @@ use crate::model::system::sys_user_post_model::count_user_post_by_id;
 use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_post_vo::*;
 use crate::RB;
-use rbs::to_value;
+use rbs::value;
 
 /*
  *添加岗位信息表
@@ -97,7 +97,7 @@ pub async fn delete_sys_post(item: Json<DeletePostReq>, _auth: Token) -> Value {
         }
     }
 
-    let result = Post::delete_in_column(rb, "id", &item.ids).await;
+    let result = Post::delete_by_map(rb, value! {"id": &item.ids}).await;
 
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(),
@@ -163,7 +163,7 @@ pub async fn update_sys_post(item: Json<UpdatePostReq>, _auth: Token) -> Value {
         update_time: None,                      //更新时间
     };
 
-    let result = Post::update_by_column(rb, &sys_post, "id").await;
+    let result = Post::update_by_map(rb, &sys_post, value! {"id": &req.id}).await;
 
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(),
@@ -191,8 +191,8 @@ pub async fn update_sys_post_status(item: Json<UpdatePostStatusReq>, _auth: Toke
             .join(", ")
     );
 
-    let mut param = vec![to_value!(req.status)];
-    param.extend(req.ids.iter().map(|&id| to_value!(id)));
+    let mut param = vec![value!(req.status)];
+    param.extend(req.ids.iter().map(|&id| value!(id)));
     let result = rb.exec(&update_sql, param).await;
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(),

@@ -8,7 +8,7 @@ use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_dept_vo::*;
 use crate::RB;
 use rbatis::rbatis_codegen::ops::AsProxy;
-use rbs::to_value;
+use rbs::value;
 use rocket::serde::json::{Json, Value};
 
 /*
@@ -96,7 +96,7 @@ pub async fn delete_sys_dept(item: Json<DeleteDeptReq>, _auth: Token) -> Value {
         return BaseResponse::<String>::err_result_msg("部门存在用户,不允许删除".to_string());
     }
 
-    let result = Dept::delete_by_column(rb, "id", &req.id).await;
+    let result = Dept::delete_by_map(rb, value! {"id": &req.id}).await;
 
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(),
@@ -165,18 +165,16 @@ pub async fn update_sys_dept(item: Json<UpdateDeptReq>, _auth: Token) -> Value {
     let res = select_children_dept_by_id(rb, &req.id).await;
     match res {
         Ok(list) => {
-            let mut depts = vec![];
             for mut x in list {
                 x.ancestors = x
                     .ancestors
                     .replace(old_ancestors.as_str(), ancestors.as_str());
-                depts.push(x)
-            }
-            let result = Dept::update_by_column_batch(rb, &depts, "id", depts.len() as u64).await;
-            if result.is_err() {
-                return BaseResponse::<String>::err_result_msg(
-                    "修改下级部门祖级列失败".to_string(),
-                );
+                let result = Dept::update_by_map(rb, &x, value! {"id": &x.id}).await;
+                if result.is_err() {
+                    return BaseResponse::<String>::err_result_msg(
+                        "修改下级部门祖级列失败".to_string(),
+                    );
+                }
             }
         }
         Err(err) => return BaseResponse::<String>::err_result_msg(err.to_string()),
@@ -197,7 +195,7 @@ pub async fn update_sys_dept(item: Json<UpdateDeptReq>, _auth: Token) -> Value {
         update_time: None,            //修改时间
     };
 
-    let result = Dept::update_by_column(rb, &sys_dept, "id").await;
+    let result = Dept::update_by_map(rb, &sys_dept, value! {"id": &req.id}).await;
 
     if result.is_err() {
         return BaseResponse::<String>::err_result_msg("更新部门失败".to_string());
@@ -211,8 +209,8 @@ pub async fn update_sys_dept(item: Json<UpdateDeptReq>, _auth: Token) -> Value {
             ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
         );
 
-        let mut param = vec![to_value!(req.status)];
-        param.extend(ids.iter().map(|&id| to_value!(id)));
+        let mut param = vec![value!(req.status)];
+        param.extend(ids.iter().map(|&id| value!(id)));
         let res = rb.exec(&update_sql, param).await;
 
         match res {
@@ -247,8 +245,8 @@ pub async fn update_sys_dept_status(item: Json<UpdateDeptStatusReq>, _auth: Toke
                     ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
                 );
 
-                let mut param = vec![to_value!(req.status)];
-                param.extend(ids.iter().map(|&id| to_value!(id)));
+                let mut param = vec![value!(req.status)];
+                param.extend(ids.iter().map(|&id| value!(id)));
                 let res_dept = rb.exec(&update_sql, param).await;
 
                 if res_dept.is_err() {
@@ -269,8 +267,8 @@ pub async fn update_sys_dept_status(item: Json<UpdateDeptStatusReq>, _auth: Toke
             .join(", ")
     );
 
-    let mut param = vec![to_value!(req.status)];
-    param.extend(req.ids.iter().map(|&id| to_value!(id)));
+    let mut param = vec![value!(req.status)];
+    param.extend(req.ids.iter().map(|&id| value!(id)));
     let result = rb.exec(&update_sql, param).await;
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(),

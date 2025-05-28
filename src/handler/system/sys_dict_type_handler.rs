@@ -8,7 +8,7 @@ use crate::model::system::sys_dict_type_model::DictType;
 use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_dict_type_vo::*;
 use crate::RB;
-use rbs::to_value;
+use rbs::value;
 
 /*
  *添加字典类型表
@@ -86,7 +86,7 @@ pub async fn delete_sys_dict_type(item: Json<DeleteDictTypeReq>, _auth: Token) -
         }
     }
 
-    let result = DictType::delete_in_column(rb, "id", &item.ids).await;
+    let result = DictType::delete_by_map(rb, value! {"id": &item.ids}).await;
 
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(),
@@ -142,7 +142,8 @@ pub async fn update_sys_dict_type(item: Json<UpdateDictTypeReq>, _auth: Token) -
         update_time: None,                      //修改时间
     };
 
-    let result = DictType::update_by_column(rb, &sys_dict_type, "dict_id").await;
+    let result =
+        DictType::update_by_map(rb, &sys_dict_type, value! {"dict_id": &req.dict_id}).await;
 
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(),
@@ -173,8 +174,8 @@ pub async fn update_sys_dict_type_status(
             .join(", ")
     );
 
-    let mut param = vec![to_value!(req.status)];
-    param.extend(req.ids.iter().map(|&id| to_value!(id)));
+    let mut param = vec![value!(req.status)];
+    param.extend(req.ids.iter().map(|&id| value!(id)));
     let result = rb.exec(&update_sql, param).await;
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(),

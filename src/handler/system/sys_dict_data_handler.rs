@@ -7,7 +7,7 @@ use crate::model::system::sys_dict_data_model::DictData;
 use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_dict_data_vo::*;
 use crate::RB;
-use rbs::to_value;
+use rbs::value;
 
 /*
  *添加字典数据表
@@ -79,7 +79,7 @@ pub async fn delete_sys_dict_data(item: Json<DeleteDictDataReq>, _auth: Token) -
     log::info!("delete sys_dict_data params: {:?}", &item);
     let rb = &mut RB.clone();
 
-    let result = DictData::delete_in_column(rb, "id", &item.ids).await;
+    let result = DictData::delete_by_map(rb, value! {"id": &item.ids}).await;
 
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(),
@@ -151,7 +151,8 @@ pub async fn update_sys_dict_data(item: Json<UpdateDictDataReq>, _auth: Token) -
         update_time: None,                      //修改时间
     };
 
-    let result = DictData::update_by_column(rb, &sys_dict_data, "dict_code").await;
+    let result =
+        DictData::update_by_map(rb, &sys_dict_data, value! {"dict_code": &req.dict_code}).await;
 
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(),
@@ -182,8 +183,8 @@ pub async fn update_sys_dict_data_status(
             .join(", ")
     );
 
-    let mut param = vec![to_value!(req.status)];
-    param.extend(req.ids.iter().map(|&id| to_value!(id)));
+    let mut param = vec![value!(req.status)];
+    param.extend(req.ids.iter().map(|&id| value!(id)));
     let result = rb.exec(&update_sql, param).await;
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(),
