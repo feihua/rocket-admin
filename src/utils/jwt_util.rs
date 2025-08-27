@@ -1,11 +1,11 @@
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+use crate::common::error::AppError;
+use crate::common::error::AppError::JwtTokenError;
 use jsonwebtoken::{
     decode, encode, errors::ErrorKind, Algorithm, DecodingKey, EncodingKey, Header, Validation,
 };
 use serde::{Deserialize, Serialize};
-use crate::common::error::WhoUnfollowedError;
-use crate::common::error::WhoUnfollowedError::JwtTokenError;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JWTToken {
@@ -49,7 +49,7 @@ impl JWTToken {
 
     /// create token
     /// secret: your secret string
-    pub fn create_token(&self, secret: &str) -> Result<String, WhoUnfollowedError> {
+    pub fn create_token(&self, secret: &str) -> Result<String, AppError> {
         return match encode(
             &Header::default(),
             self,
@@ -61,7 +61,7 @@ impl JWTToken {
     }
     /// verify token invalid
     /// secret: your secret string
-    pub fn verify(secret: &str, token: &str) -> Result<JWTToken, WhoUnfollowedError> {
+    pub fn verify(secret: &str, token: &str) -> Result<JWTToken, AppError> {
         let mut validation = Validation::new(Algorithm::HS256);
         validation.sub = Some("rust_admin".to_string());
         validation.set_audience(&["rust_admin"]);

@@ -1,4 +1,4 @@
-use crate::common::error::WhoUnfollowedError;
+use crate::common::error::AppError;
 use crate::common::result::BaseResponse;
 use crate::middleware::auth::Token;
 use crate::model::system::sys_dept_model::Dept;
@@ -568,7 +568,7 @@ pub async fn login(item: Json<UserLoginReq>) -> Value {
                     }
                     Err(err) => {
                         let er = match err {
-                            WhoUnfollowedError::JwtTokenError(s) => s,
+                            AppError::JwtTokenError(s) => s,
                             _ => "no math error".to_string(),
                         };
                         add_login_log(req.mobile, 0, "生成token异常".to_string(), agent).await;

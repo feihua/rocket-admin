@@ -1,6 +1,7 @@
 use rbatis::plugin::page::PageRequest;
 use rocket::serde::json::{Json, Value};
 
+use crate::common::error::{AppError, AppResult};
 use crate::common::result::BaseResponse;
 use crate::middleware::auth::Token;
 use crate::model::system::sys_notice_model::Notice;
@@ -8,26 +9,20 @@ use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_notice_vo::*;
 use crate::RB;
 use rbs::value;
-
 /*
  *添加通知公告表
  *author：刘飞华
  *date：2025/01/09 16:16:41
  */
 #[post("/system/notice/addNotice", data = "<item>")]
-pub async fn add_sys_notice(item: Json<AddNoticeReq>, _auth: Token) -> Value {
+pub async fn add_sys_notice(item: Json<AddNoticeReq>, _auth: Token) -> AppResult<Value> {
     log::info!("add sys_notice params: {:?}", &item);
     let rb = &mut RB.clone();
     let req = item.0;
 
-    let res = Notice::select_by_title(rb, &req.notice_title).await;
-    match res {
-        Ok(r) => {
-            if r.is_some() {
-                return BaseResponse::<String>::err_result_msg("公告标题已存在".to_string());
-            }
-        }
-        Err(err) => return BaseResponse::<String>::err_result_msg(err.to_string()),
+    let res = Notice::select_by_title(rb, &req.notice_title).await?;
+    if res.is_some() {
+        return Err(AppError::BusinessError("公告标题已存在"));
     }
 
     let sys_notice = Notice {
@@ -41,12 +36,9 @@ pub async fn add_sys_notice(item: Json<AddNoticeReq>, _auth: Token) -> Value {
         update_time: None,                      //修改时间
     };
 
-    let result = Notice::insert(rb, &sys_notice).await;
+    Notice::insert(rb, &sys_notice).await?;
 
-    match result {
-        Ok(_u) => BaseResponse::<String>::ok_result(),
-        Err(err) => BaseResponse::<String>::err_result_msg(err.to_string()),
-    }
+    Ok(BaseResponse::<String>::ok_result())
 }
 
 /*
