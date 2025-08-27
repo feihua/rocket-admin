@@ -2,7 +2,7 @@ use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome};
 use serde::Deserialize;
 
-use crate::utils::jwt_util::JWTToken;
+use crate::utils::jwt_util::JwtToken;
 
 #[derive(Debug, Deserialize)]
 pub struct Token {
@@ -20,7 +20,7 @@ impl<'r> FromRequest<'r> for Token {
             let split_vec = header_auth.split_whitespace().collect::<Vec<_>>();
             if split_vec.len() == 2 && split_vec[0] == "Bearer" {
                 let token = split_vec[1];
-                let jwt_token_e = JWTToken::verify("123", &token);
+                let jwt_token_e = JwtToken::verify("123", &token);
                 let jwt_token = match jwt_token_e {
                     Ok(data) => data,
                     Err(err) => {
