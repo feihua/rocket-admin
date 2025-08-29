@@ -13,6 +13,9 @@ use crate::handler::system::{
 use dotenvy::dotenv;
 use middleware::auth::Token;
 use rbatis::rbatis::RBatis;
+use rbatis::rbdc::pool::{ConnectionManager, Pool};
+use rbdc_mysql::MysqlDriver;
+use rbdc_pool_fast::FastPool;
 use rocket::serde::json::serde_json::json;
 use rocket::serde::json::Value;
 use rocket::{Config, Request};
@@ -57,8 +60,11 @@ async fn main() -> Result<(), rocket::Error> {
     dotenv().ok();
     let server_port = env::var("SERVER_PORT").expect("SERVER_PORT is not set in .env file");
     let db_url = env::var("DATABASE_URL").expect("DATABASE_URL is not set in .env file");
-    RB.init(rbdc_mysql::driver::MysqlDriver {}, db_url.as_str())
-        .unwrap();
+    let manager = ConnectionManager::new(MysqlDriver {}, db_url.as_str())
+        .expect("create connection manager error");
+    let pool = FastPool::new(manager).expect("create db pool error");
+
+    RB.init_pool(pool).expect("init db pool error");
 
     let config = Config {
         address: Ipv4Addr::new(0, 0, 0, 0).into(),
