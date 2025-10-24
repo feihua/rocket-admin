@@ -110,6 +110,7 @@ async fn main() -> Result<(), rocket::Error> {
                 sys_menu_handler::query_sys_menu_detail,
                 sys_menu_handler::query_sys_menu_list,
                 sys_menu_handler::query_sys_menu_list_simple,
+                sys_menu_handler::query_sys_menu_resource_list,
                 sys_post_handler::add_sys_post,
                 sys_post_handler::delete_sys_post,
                 sys_post_handler::update_sys_post,
